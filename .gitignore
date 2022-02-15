@@ -1,0 +1,14 @@
+# Google drive update
+/.tmp.driveupload
+
+# VSC config don't need to be universal
+/.vscode
+
+# Excutable files makes repo nasty
+*.exe
+*.out
+
+# Result data as csv should be selected
+*.csv
+!/MonteCarlo/Newman_Barkema/*/*/Result/*/*.csv
+!/MonteCarlo/Newman_Barkema/*/Result/*/*.csv

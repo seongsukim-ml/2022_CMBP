@@ -1,0 +1,9 @@
+22.02.14
+FFS 결과가 대체로 잘 나오긴 했는데, Specific heat가 제대로 나오지 않은 것 같음.
+특히, specific heat의 결과 그래프가 smooth하지 않은 형태를 띠는 것을 보아약간의 오차가 있는 것으로 보이고,
+FFS를 통해서 critical exponent \alpha를 확인하는 것에도 이론상의 값인 0이 아니라 0.25쯤으로 나오는 것으로 확인 됨
+
+이 문제의 원인을 세 가지 중 하나로 보고 있는데
+1. 코드 구현상 문제로 Specific heat의 값 자체가 잘 못 나오고 있음
+2. mcs를 1e5로 두었는데, 이 값이 너무 적어서 안나오고 있음 (specific heat의 오차는 magnetization과 Susceptibility에 비해서 오차가 있어 보임)
+3. FFS를 위한 data processing 과정에서 문제가 있을 가능성
