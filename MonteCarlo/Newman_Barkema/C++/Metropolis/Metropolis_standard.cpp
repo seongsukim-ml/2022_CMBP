@@ -16,6 +16,8 @@ const double Tfin = 5;
 double isTinf = false;
 const bool Random = true;
 
+typedef Metropolis_2D Model;
+
 #ifdef _WIN32
 static string kFilename = ".\\Result\\Metropolis_c_"+to_string(kL)+"_int"+to_string(kBin);
 #endif
@@ -51,7 +53,7 @@ void Farewell(int N = 0){
     cout << "-------------------------------------------------------------------------------------------\n";
 }
 
-void handler(int A)
+void handler(int A) 
 {
     cout << endl;
     Farewell(1);

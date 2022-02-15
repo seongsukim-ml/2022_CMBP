@@ -22,6 +22,7 @@ static string kFilename = ".\\Result\\Wolff_c_"+to_string(kL)+"_int"+to_string(k
 static string kFilename = "./Result/Wolff_c_"+to_string(kL)+"_int"+to_string(kBin);
 #endif //linux
 
+typedef Wolff_2D Model;
 
 vector<double> args = {kL,kBin,kB,kJ,Tsrt,Tfin,isTinf};
 
