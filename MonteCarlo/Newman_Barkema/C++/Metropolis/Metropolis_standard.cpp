@@ -44,7 +44,7 @@ void Greetings(){
 
 void Farewell(int N = 0){
     __finish__ = clock();
-    if(!N)
+    if(N)
         cout << "\nProgram Abonormally Exit. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
     else
         cout << "Program Exit. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
