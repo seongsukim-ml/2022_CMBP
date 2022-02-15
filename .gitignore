@@ -3,6 +3,8 @@
 
 # VSC config don't need to be universal
 /.vscode
+*/.vscode
+*/*/.vscode
 
 # Excutable files makes repo nasty
 *.exe
