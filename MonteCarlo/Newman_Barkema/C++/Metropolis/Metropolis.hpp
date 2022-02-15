@@ -68,6 +68,7 @@ class Model{
         long Total_Step  = 0;
         long Calc_call = 0;
 
+        static string Name(){return "Metropolis";}
         Model(int L, int bin, int B, int J, int Tsrt, int Tfin, bool isTinf);
         Model(vector<double> args);
         ~Model(){
@@ -87,7 +88,8 @@ class Model{
         void IterateUntilEquilibrium(int equil_time,bool random = true);
 };
 
-Model::Model(int L, int bin, int B, int J, int Tsrt, int Tfin, bool isTinf) :L(L), N(L*L), Bin(bin), B(B), J(J), YNN(L){
+Model::Model(int L, int bin, int B, int J, int Tsrt, int Tfin, bool isTinf)
+:L(L), N(L*L), Bin(bin), B(B), J(J), YNN(L) {
     this-> isTinf = isTinf;
     this-> sc = new short[N];
 

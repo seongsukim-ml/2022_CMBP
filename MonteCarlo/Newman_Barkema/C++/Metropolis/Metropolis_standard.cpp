@@ -14,7 +14,7 @@ const double Tsrt = 0;
 const double Tfin = 5;
 
 double isTinf = false;
-const bool random = true;
+const bool Random = true;
 
 #ifdef _WIN32
 static string kFilename = ".\\Result\\Metropolis_c_"+to_string(kL)+"_int"+to_string(kBin);
@@ -30,27 +30,37 @@ clock_t __start__, __finish__;
 
 void Greetings(){
     string Tat = isTinf ? "inf" : "0";
-    string isRandom = random ? "Random" : "Chess board";
 
-    cout << "Metropolis Algorithm\n";
+    cout << Model::Name() + "Algorithm\n";
     cout << "Radnomness test(seed): " << seed << '\n';
-    cout << "L = " << kL << ", " << "bin = " << kBin << ", Start T at " << Tat <<", selecting sites: " <<  isRandom <<"\n";
+    cout << "L = " << kL << ", " << "bin = " << kBin << ", Start T at " << Tat << "\n";
     cout << "------------------------------------------------------------------------------------------------------------------" << "\n";
     cout << "--index--||---Temp----||EQ:sig------HH----------||magnetization---specific heat||Fliped Step------Total Step------" << "\n";
     cout << "------------------------------------------------------------------------------------------------------------------" << endl;
     cout << fixed <<setprecision(6);
-    cout << showpos;
 
     __start__ = clock();
 }
 
-void Farewell(){
+void Farewell(int N = 0){
     __finish__ = clock();
-    cout << "Program Exit. Total Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
-    cout << "------------------------------------------------------------------------------------------------------------------";
+    if(!N)
+        cout << "\nProgram Abonormally Exit. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
+    else
+        cout << "Program Exit. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
+    cout << "-------------------------------------------------------------------------------------------\n";
+}
+
+void handler(int A)
+{
+    cout << endl;
+    Farewell(1);
+    exit(A);
 }
 
 int main(){
+    signal(SIGSEGV, &handler);
+    signal(SIGINT, &handler);
     Greetings();
     for(int gg = 0; gg < 1; gg++){
         Model model = Model(args);

@@ -67,6 +67,7 @@ class Model{
         unsigned long Total_Step  = 0;
         unsigned long Calc_call = 0;
 
+        static string Name(){return "Wolff";}
         Model(int L, int bin, double B, double J, double Tsrt, double Tfin, bool isTinf);
         Model(vector<double> args);
         ~Model(){

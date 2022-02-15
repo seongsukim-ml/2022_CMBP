@@ -31,7 +31,7 @@ clock_t __start__, __finish__;
 void Greetings(){
     string Tat = isTinf ? "inf" : "0";
 
-    cout << "Wolff Algorithm\n";
+    cout << Model::Name() + " Algorithm\n";
     cout << "Radnomness test(seed): " << seed << '\n';
     cout << "L = " << kL << ", " << "bin = " << kBin << ", Start T at " << Tat << "\n";
     cout << "------------------------------------------------------------------------------------------------------------------" << "\n";
@@ -47,7 +47,7 @@ void Farewell(int N = 0){
     if(!N)
         cout << "\nProgram Abonormally Exit. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
     else
-        cout << "Program Exit Exit. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
+        cout << "Program Exit. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
     cout << "-------------------------------------------------------------------------------------------\n";
 }
 
