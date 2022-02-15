@@ -7,7 +7,7 @@ do
         ;;
     *.cpp)
         g++ -o $(basename "$name" .cpp).out "$name" -O3 && ./$(basename "$name" .cpp).out &&
-	echo $(basename "$name" .cpp)+"is compiled and running!"
+	echo $(basename "$name" .cpp)" is compiled and running!"
 	;;
     *)
         echo "ignoring $name, since it is not one of my files!"
