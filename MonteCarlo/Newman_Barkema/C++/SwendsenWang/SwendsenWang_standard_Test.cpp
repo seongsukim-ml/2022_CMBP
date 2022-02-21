@@ -5,7 +5,7 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL = 5; /*Parameter: lattice size*/
+const int kL = 100; /*Parameter: lattice size*/
 const int kN = kL*kL;
 const int kBin = 3; /*Parametr: Change binning of temperature*/
 const int kB = 0;

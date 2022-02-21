@@ -300,7 +300,10 @@ void SwendsenWang_2D::MakeBonds(){
 //     }
 // }
 
-string A = "·╴╶─╷┐┌┬╵┘└┴│┤├┼";
+vector<string> A = {"·","╴","╶","─",\
+                    "╷","┐","┌","┬",\
+                    "╵","┘","└","┴",\
+                    "│","┤","├","┼"};
 
 void SwendsenWang_2D::ClusterAndLabel(){
     int largest_label = 0;
@@ -311,35 +314,14 @@ void SwendsenWang_2D::ClusterAndLabel(){
     int bond[4];
     int bonds_num;
 
-    string res = "";
-
-    for(int j = 0; j < L; j++){
-        for(int i = 0; i < L; i++){
-            res += to_string(iBondLeft[cor(i,j)]);
-        }
-        res += "\n";
-    }
-    cout << "iBondLeft\n" << res;
-
-    res = "";
-
-    for(int j = 0; j < L; j++){
-        for(int i = 0; i < L; i++){
-            res += to_string(jBondAbove[cor(i,j)]);
-        }
-        res += "\n";
-    }
-    cout << "iBondAbove\n" << res;
-    
-    res = "";
-    for(int j = 0; j < L; j++){
-        for(int i = 0; i < L; i++){
-            res += A.at(iBondLeft[cor(i,j)] + 2*iBondLeft[cor(i+1,j)] + \
-                        4*jBondAbove[cor(i,j-1)]+ 8*jBondAbove[cor(i,j)]);
-        }
-        res += "\n";
-    }
-    cout << "Box Draw\n" << res;
+    // string res = "";
+    // for(int j = 0; j < L; j++){
+    //     for(int i = 0; i < L; i++){
+    //         res += A[iBondLeft[cor(i,j)] + 2*iBondLeft[cor(i+1,j)] + 4*jBondAbove[cor(i,j+1)]+ 8*jBondAbove[cor(i,j)]];
+    //     }
+    //     res += "\n";
+    // }
+    // cout << "Box Draw\n" << res;
 
     for(int j = 0; j < L; j++){
         for(int i = 0; i < L; i++){
@@ -442,15 +424,15 @@ void SwendsenWang_2D::FlipCluster(){
 }
 
 void SwendsenWang_2D::Union(int x, int y){
-    // int xx = Find(x);
-    // int yy = Find(y);
-    // if (xx > yy)
-    //   labels[xx] = yy;
-    // else
-    //   labels[yy] = xx;
+    int xx = Find(x);
+    int yy = Find(y);
+    if (xx > yy)
+      labels[xx] = yy;
+    else
+      labels[yy] = xx;
 
     // maybe y should be smaller I guess
-    labels[Find(x)] = Find(y);
+    // labels[Find(x)] = Find(y);
 }
 
 int SwendsenWang_2D::Find(int x){
