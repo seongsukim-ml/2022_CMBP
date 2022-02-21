@@ -1,11 +1,11 @@
-#include "SwendsenWangTest.hpp"
+#include "SwendsenWang_HK.hpp"
 #include "../Writer.hpp"
 #include "../DebugHelper.hpp"
 
 #include <iostream>
 #include <iomanip>
 
-const int kL = 10; /*Parameter: lattice size*/
+const int kL = 5; /*Parameter: lattice size*/
 const int kN = kL*kL;
 const int kBin = 3; /*Parametr: Change binning of temperature*/
 const int kB = 0;
@@ -70,8 +70,8 @@ int main(){
         Writer modelW = Writer(kFilename+"final");
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(sigma),sigma**2,sigma**4,HH,HH**2,m_error\n");
 
-        int equil_time = 100;
-        int mcs = 1e5;
+        int equil_time = 1000;
+        int mcs = 1e6;
 
         int HH;
         double sigma;
@@ -84,7 +84,7 @@ int main(){
             model.Initialize(model.BetaV[i]);
             model.res = vector<double>(5,0);
 
-            equil_time = 50;
+            // equil_time = 50;
 
             // if(model.TV[i]<2.4 || model.TV[i]>2.0) equil_time = 100;
 

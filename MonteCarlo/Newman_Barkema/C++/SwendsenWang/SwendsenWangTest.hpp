@@ -240,80 +240,92 @@ int SwendsenWang_2D::Calculate(){
             size++;
         }
 
-        clusterd[k] = Flip_factor*snew;
+
+        clusterd[k] = snew*Flip_factor;
+        // clusterd[k] = Flip_factor;
         clusterd_check[k] = cnt;
 
+        vector<bool> visited(N);
+        visited[k] = true;
 
         while(sp){
             cur = stack[--sp];
             nn[0] = (cur+XNN+N)%N;
             nn[1] = (cur+YNN+N)%N;
-            nn[2] = (cur-XNN+N)%N;
-            nn[3] = (cur-YNN+N)%N;
+            // nn[2] = (cur-XNN+N)%N;
+            // nn[3] = (cur-YNN+N)%N;
 
-            for(l = 0; l < 4; l++){
-                if(clusterd[nn[l]] == 0 && sc_copy[nn[l]] == sold){
-                    if(dis(gen) < prob){
-                        clusterd[nn[l]] = Flip_factor*snew;
-                        clusterd_check[nn[l]] = cnt;
+            for(l = 0; l < 2; l++){
+                if(!visited[nn[l]])
+                    visited[nn[l]] = true;
+                    if(clusterd[nn[l]] == 0 && sc_copy[nn[l]] == sold){
+                        if(dis(gen) < prob){
+                            clusterd[nn[l]] = snew*Flip_factor;
+                            // clusterd[nn[l]] = Flip_factor;
+                            clusterd_check[nn[l]] = cnt;
 
-                        stack[sp++] = nn[l];
-                        sc_copy[nn[l]] = snew;
-                        
-                        if(Flip_factor == 2){
+                            stack[sp++] = nn[l];
+                            sc_copy[nn[l]] = snew;
+                            
                             Fliped_Step++;
                             size++;
                         }
                     }
-                }
             }
         }
     }
 
-    // string res = "";
-    // for(int i = 0; i < L; i++){
-    //     for(int j = 0; j < L; j++){
-    //         if(clusterd[i*L+j] == 2) res += "��";
-    //         else if(clusterd[i*L+j] == 1) res += "��";
-    //         else if(clusterd[i*L+j] == -2) res += "��";
-    //         else if(clusterd[i*L+j] == -1) res += "��";	
-    //     }
-    //     res += "\n";
-    // }
-    // cout << res << "\n";
+    bool debug = false;
 
-    // res = "";
-    // for(int i = 0; i < L; i++){
-    //     for(int j = 0; j < L; j++){
-    //         if(sc[i*L+j] == 1) res += "��";
-    //         else if(sc[i*L+j] == -1) res += "��";
-    //     }
-    //     res += "\n";
-    // }
-    // cout << res << "\n";
+    if(debug){
+        string res = "";
+        for(int i = 0; i < L; i++){
+            for(int j = 0; j < L; j++){
+                if(clusterd[i*L+j] == 2) res += "��";
+                else if(clusterd[i*L+j] == 1) res += "��";
+                else if(clusterd[i*L+j] == -2) res += "��";
+                else if(clusterd[i*L+j] == -1) res += "��";	
+            }
+            res += "\n";
+        }
+        cout << res << "\n";
 
-    // res = "";
-    // for(int i = 0; i < L; i++){
-    //     for(int j = 0; j < L; j++){
-    //         res += to_string(clusterd_check[i*L+j]) + " ";
-    //     }
-    //     res += "\n";
-    // }
-    // cout << res << "\n";
+        res = "";
+        for(int i = 0; i < L; i++){
+            for(int j = 0; j < L; j++){
+                if(sc[i*L+j] == 1) res += "��";
+                else if(sc[i*L+j] == -1) res += "��";
+            }
+            res += "\n";
+        }
+        cout << res << "\n";
+
+        res = "";
+        for(int i = 0; i < L; i++){
+            for(int j = 0; j < L; j++){
+                res += to_string(clusterd_check[i*L+j]) + " ";
+            }
+            res += "\n";
+        }
+        cout << res << "\n";
+    }
 
     for(int k = 0; k < N; k++){
+        // this->sc[k] = clusterd[k];
         this->sc[k] += (clusterd[k]/2)*2;
     }
 
-    // res = "";
-    // for(int i = 0; i < L; i++){
-    //     for(int j = 0; j < L; j++){
-    //         if(sc[i*L+j] == 1) res += "��";
-    //         else if(sc[i*L+j] == -1) res += "��";
-    //     }
-    //     res += "\n";
-    // }
-    // cout << res << "\n";
+    if(debug){
+        string res = "";
+        for(int i = 0; i < L; i++){
+            for(int j = 0; j < L; j++){
+                if(sc[i*L+j] == 1) res += "��";
+                else if(sc[i*L+j] == -1) res += "��";
+            }
+            res += "\n";
+        }
+        cout << res << "\n";
+    }
 
     Total_Step++;
     return size;
@@ -344,11 +356,6 @@ int SwendsenWang_2D::Calculate(int site){
         if((nn[1] = cur + XNN) >= N) nn[1] -= N;
         if((nn[2] = cur - YNN) <  0) nn[2] += N;
         if((nn[3] = cur + YNN) >= N) nn[3] -= N;
-        
-        // if((nn[0] = cur - XNN) <  0) nn[0] += N;
-        if((nn[0] = cur + XNN) >= N) nn[0] -= N;
-        // if((nn[2] = cur - YNN) <  0) nn[2] += N;
-        if((nn[1] = cur + YNN) >= N) nn[1] -= N;
 
 
         for(l = 0; l < 2; l++){

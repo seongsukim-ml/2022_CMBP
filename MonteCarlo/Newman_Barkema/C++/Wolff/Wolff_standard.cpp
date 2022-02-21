@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL = 10; /*Parameter: lattice size*/
+const int kL = 100; /*Parameter: lattice size*/
 const int kN = kL*kL;
 const int kBin = 3; /*Parametr: Change binning of temperature*/
 const int kB = 0;
@@ -69,7 +69,7 @@ int main(){
         Writer modelW = Writer(kFilename+"final");
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(sigma),sigma**2,sigma**4,HH,HH**2,m_error\n");
 
-        int HH, equil_time, mcs = 1e6;
+        int HH, equil_time, mcs = 1e5;
         double sigma;
         double mcs_i = 1/double(mcs);
         double kNi = 1/double(kN);
