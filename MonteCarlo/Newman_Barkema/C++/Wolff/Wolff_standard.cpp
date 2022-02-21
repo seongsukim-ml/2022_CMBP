@@ -4,15 +4,15 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL = 100; /*Parameter: lattice size*/
+const int kL = 10; /*Parameter: lattice size*/
 const int kN = kL*kL;
-const int kBin = 25; /*Parametr: Change binning of temperature*/
+const int kBin = 3; /*Parametr: Change binning of temperature*/
 const int kB = 0;
 const int kJ = 1;
 
 // T_crit ~ 2.269
-const double Tsrt = 2.200;
-const double Tfin = 2.350;
+const double Tsrt = T_CRIT*(1-0.2);
+const double Tfin = T_CRIT*(1+0.2);
 
 double isTinf = false;
 
@@ -55,7 +55,7 @@ void Farewell(int N = 0){
 void handler(int A)
 {
     cout << endl;
-    Farewell();
+    Farewell(1);
     exit(A);
 }
 
@@ -64,12 +64,12 @@ int main(){
     signal(SIGINT, &handler);
     Greetings();
     
-    for(int gg = 0; gg < 8; gg++){
+    for(int gg = 0; gg < 1; gg++){
         Model model = Model(args);
         Writer modelW = Writer(kFilename+"final");
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(sigma),sigma**2,sigma**4,HH,HH**2,m_error\n");
 
-        int HH, equil_time, mcs = 1e5;
+        int HH, equil_time, mcs = 1e6;
         double sigma;
         double mcs_i = 1/double(mcs);
         double kNi = 1/double(kN);
