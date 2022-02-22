@@ -1,7 +1,11 @@
 #ifndef ____SwendsenWang_HK____
 #define ____SwendsenWang_HK____ 
 
-#define cor(x,y) ((y)*L+x+N)%N
+// Macro that will be discharged at the end of header
+#define cor(x,y) ((y)*L+x+N)%N              // HPBC
+// #define cor(x,y) ((y)*L+((x+L)%L)+N)%N   // PBC
+
+#define rng() dis(gen)
 
 // File & IO System
 #include <iostream>
@@ -18,21 +22,21 @@
 #include <stdlib.h>
 #include <ctime>
 
-
 using namespace std;
 
-// static random_device rd;  // Will be used to obtain a seed for the random number engine
+/* Random Number Generator */
+// static random_device rd;  // Will be used to obtain a seed for the random number engine - device dependent
 // static mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
-// static uniform_real_distribution<> dis(0.0, 1.0);
 
-static long unsigned int seed = static_cast<long unsigned int>(time(0)); 
+static long unsigned int seed = static_cast<long unsigned int>(time(0)); // Set the seed of rng by current time.
 static mt19937 gen(seed); // Standard mersenne_twister_engine seeded with time()
 static uniform_real_distribution<> dis(0.0, 1.0);
 
-//In 2D Ising model => T_CRIT = 2/log(1+sqrt(2))
-const double T_CRIT = 2.269185; 
-
+// typedef
 typedef tuple<int,int> duo;
+
+// In 2D Ising model => T_CRIT = 2/log(1+sqrt(2))
+const double T_CRIT = 2.269185; 
 
 class SwendsenWang_2D{ 
     public:
@@ -55,16 +59,15 @@ class SwendsenWang_2D{
         vector<double> BetaV;
         vector<double> res;
 
-        // short* sc;                          // Square lattice configuration of 2D Ising model
-        vector<short> sc;
+        // short* sc;
+        vector<short> sc;                      // Square lattice configuration of 2D Ising model
         double prob;
 
-        vector<short> iBondLeft;
-        vector<short> jBondAbove;
+        vector<short> iBondLeft  = vector<short>(N);
+        vector<short> jBondAbove = vector<short>(N);
 
         vector<int> label;
         vector<int> labels;
-
 
         unsigned long Fliped_Step = 0;
         unsigned long Total_Step  = 0;
@@ -96,19 +99,19 @@ class SwendsenWang_2D{
         int SweepHelical(int i);
 
         // Measure sum of magnetizaiton and Hamiltonian of Spin configuration on current situation
-        duo Measure();
+        duo  Measure();
 
         // Sub step of Monte Carlo step.
-        int Calculate();
+        int  Calculate();
         void IterateUntilEquilibrium(int equil_time);
 
         // HK algorithms parts for SwendsenWang
         void MakeBonds();
         void ClusterAndLabel();
         void Union(int x, int y);
-        int Find(int x);
+        int  Find(int x);
         void FlipCluster();
-        void ClusterBoxDrawing();
+        string ClusterBoxDrawing();
 
         vector<string> A = {"·","╴","╶","─",\
                     "╷","┐","┌","┬",\
@@ -156,15 +159,13 @@ void SwendsenWang_2D::Initialize(double beta){
         sc[i] = 1;
 
         // T = \inf start
-        if(this->isTinf) this->sc[i] -= int(dis(gen)*2)*2;
+        if(this->isTinf) this->sc[i] -= int(rng()*2)*2;
     }
     this->ProbCalc(beta);
-
 }
 
 int SwendsenWang_2D::SweepHelical(int i){
     int nn, sum = 0;
-    // int XNN = 1, YNN = L;
 
     if((nn = i - XNN) < 0) nn += this->N;
     sum += this->sc[nn];
@@ -186,7 +187,6 @@ int SwendsenWang_2D::BoundaryHelical(int i){
     sum += this->sc[nn];
     if((nn = i + YNN) >= N) nn -= N;
     sum += this->sc[nn];
-
     return sum;
 }
 
@@ -217,59 +217,31 @@ int SwendsenWang_2D::Calculate(){
 }
 
 void SwendsenWang_2D::IterateUntilEquilibrium(int equil_time){
-    double k = 0;
-    while(++k < equil_time){
+    int k = 0;
+    while(k++ < equil_time){
         Calculate();
     }
 }
 
 void SwendsenWang_2D::MakeBonds(){
-    this->iBondLeft  = vector<short>(N);
-    this->jBondAbove = vector<short>(N);
-    
+    for(int i = 0; i < N; i++){
+        this->iBondLeft[i]     = false;
+        this->jBondAbove[i]    = false;
+    }
+
     int nn;
     for(int i = 0; i < N; i++){
         nn = (i-XNN+N)%N;
-        if(sc[nn] == sc[i] && dis(gen) < prob){
-            iBondLeft[nn] = true;
-        }
+        if((sc[i] == sc[nn]) && (rng() < prob))
+            iBondLeft[i] = true;
         nn = (i-YNN+N)%N;
-        if(sc[nn] == sc[i] && dis(gen) < prob){
-            jBondAbove[nn] = true;
-        }
+        if((sc[i] == sc[nn]) && (rng() < prob))
+            jBondAbove[i] = true;
     }
 }
 
-// void SwendsenWang_2D::ClusterAndLabel(){
-//     int largest_label = 0;
-//     vector<int> label = vector<int>(N);
-    
-//     delete labels;
-//     labels = new int[N];
-//     for(int cnt = 0; cnt < N; cnt++) labels[cnt] = cnt;
-
-//     for(int i = 0; i < L; i++){
-//         for(int j = 0; j < L; j++){
-//             int left  = iBondLeft[cor(i,j)]  ? label[cor(i-1,j)] : 0; // label = 0 means unclusterd coordinate
-//             int above = jBondAbove[cor(i,j)] ? label[cor(i,j-1)] : 0;
-//             if(left == 0 && above == 0){
-//                 largest_label += 1; // Unused new cluster label
-//                 label[cor(i,j)] = largest_label;
-//             } else if(left != 0 && above == 0){
-//                 label[cor(i,j)] = Find(left);
-//             } else if(left == 0 && above != 0){
-//                 label[cor(i,j)] = Find(above);
-//             } else {
-//                 Union(left,above);
-//                 label[cor(i,j)] = Find(left);
-//             }
-//         }
-//     }
-// }
-
-
-void SwendsenWang_2D::ClusterBoxDrawing(){
-
+/* Debugging function*/
+string SwendsenWang_2D::ClusterBoxDrawing(){
     string res = "";
     for(int j = 0; j < L; j++){
         for(int i = 0; i < L; i++){
@@ -277,112 +249,80 @@ void SwendsenWang_2D::ClusterBoxDrawing(){
         }
         res += "\n";
     }
-    cout << "Box Draw\n" << res;    
+    return res;
 }
 
 void SwendsenWang_2D::ClusterAndLabel(){
+    // Largest label is used checked to make unused labeling number.
     int largest_label = 0;
-    label = vector<int>(N);    
+    // Array that contains the labeling number of each site.
+    label = vector<int>(N);
+    // Array that contains the matching number of label (ex) label[4] = 2 means #4 cluster is same label with #2 cluster.
+    // labels need to be initialized to label[x] = x which imply each cluster group is initialiy set independent.
     labels = vector<int>(N+1);
     for(int cnt = 0; cnt < N+1; cnt++) labels[cnt] = cnt;
 
+    // bond[] contains the site of neareast bond.
     int bond[4];
+    // bonds_num is the number of bonding from current site.
     int bonds_num;
 
-    // ClusterBoxDrawing(); // Debugging
+    string box = ClusterBoxDrawing(); // For debugging purpose.
 
     for(int j = 0; j < L; j++){
         for(int i = 0; i < L; i++){
             bonds_num = 0;
             
-            // PBC(periodic boundary condition)
-            // 0,0 always skip
-            // i,0 skip above
-            // 0,j pbc
-            // i,Lx-1 below
-            // L-1,L-1 4 direction
+            // HPBC(Helical periodic boundary condition) is apllied -> so right most site is conneted the right left most site of the next line.
+            if(!(i == 0 && j == 0)      && iBondLeft [cor(i,j)])    bond[bonds_num++] = cor(i-1,j); // Left should be checked everywhere except 0,0
+            if((j > 0)                  && jBondAbove[cor(i,j)])    bond[bonds_num++] = cor(i,j-1); // Above should be checked except 0th row
+            if((j == L-1)               && jBondAbove[cor(i,j+1)])  bond[bonds_num++] = cor(i,j+1); // Below should be checked at last row
+            if((i == L-1 && j == L-1)   && iBondLeft [0])           bond[bonds_num++] = cor(i+1,j); // Right shoudl be checked at last site
 
-            if(!(i == 0 && j == 0) && iBondLeft[cor(i,j)])      bond[bonds_num++] = cor(i-1,j);
-            if(j > 0 && jBondAbove[cor(i,j)])                   bond[bonds_num++] = cor(i,j-1);
-            if(j == L-1 && jBondAbove[cor(i,j+1)])              bond[bonds_num++] = cor(i,j+1);
-            if((i == L-1 && j == L-1) && iBondLeft[0])          bond[bonds_num++] = cor(i+1,j);
+            // // PBC(periodic boundary condition)
+            // if((i > 0)                  && iBondLeft [cor(i,j)])    bond[bonds_num++] = cor(i-1,j); // Left should be checked except 0th column
+            // if((j > 0)                  && jBondAbove[cor(i,j)])    bond[bonds_num++] = cor(i,j-1); // Above should be checked except 0th row
+            // if((j == L-1)               && jBondAbove[cor(i,j+1)])  bond[bonds_num++] = cor(i,j+1); // Below should be checked at last row
+            // if((i == L-1)               && iBondLeft [cor(i+1,j)])  bond[bonds_num++] = cor(i+1,j); // Right shoudl be checked at last column
 
+
+            // If there is no bond at current site, set it as new cluster number.
             if(bonds_num == 0){
                 label[cor(i,j)] = ++largest_label;
             } else {
-                // if only one bond
-                int min_label = label[bond[0]];
-                if (bonds_num != 1){
-                    // Find minimum label among bonds
-                    min_label = largest_label;
-                    for(int ll = 0; ll < bonds_num; ll++){
-                        int proper_label = Find(label[bond[ll]]);
-                        min_label = min_label > proper_label ? proper_label : min_label;
-                    }
-                    
-                    // Union near label to minimum label
-                    for(int ll = 0; ll < bonds_num; ll++){
-                        Union(label[bond[ll]],min_label);
-                    }
+                // If there are more than one bonds, then find the minimum number of label and union all label of near bonds to that minimum label.
+                // And set current site as the label of the minimum bond.
+                
+                // Step of finding minimum (proper) label among bonds
+                int min_label = largest_label;
+                for(int ll = 0; ll < bonds_num; ll++){
+                    int proper_label = Find(label[bond[ll]]);
+                    min_label = min_label > proper_label ? proper_label : min_label;
                 }
-                    label[cor(i,j)] = Find(min_label);
+                
+                // Step of union near label to minimum label
+                for(int ll = 0; ll < bonds_num; ll++){
+                    Union(label[bond[ll]],min_label);
+                }
+                // Common part: Set the current site label
+                label[cor(i,j)] = Find(min_label);
             }
         }
     }
 }
 
-// void SwendsenWang_2D::ClusterAndLabel(){
-//     int largest_label = 0;
-//     label = vector<int>(N);    
-//     labels = vector<int>(N);
-//     for(int cnt = 0; cnt < N; cnt++) labels[cnt] = cnt;
-
-//     int bond[2];
-//     int bonds_num = 0;
-
-//     for(int j = 0; j < L; j++){
-//         for(int i = 0; i < L; i++){
-//             bonds_num = 0;
-
-//             if(iBondLeft[cor(i,j)])  bond[bonds_num++] = cor(i-1,j);
-//             if(jBondAbove[cor(i,j)]) bond[bonds_num++] = cor(i,j-1);
-
-//             if(bonds_num == 0){
-//                 label[cor(i,j)] = ++largest_label;
-//             } else if (bonds_num == 1) {
-//                 if(label[cor(i,j)] == 0){
-//                     if(label[bond[0]] == 0)
-//                         label[bond[0]] = ++largest_label;
-//                     label[cor(i,j)] = Find(label[bond[0]]);
-//                 } else {
-//                     if(label[bond[0]] == 0)
-//                         label[bond[0]] = label[cor(i,j)];
-//                     else
-//                         Union(label[bond[0]],label[cor(i,j)]);
-//                 }
-//             } else {
-//                 Union(label[bond[0]],label[bond[1]]);
-//                 if(label[cor(i,j)] == 0){
-//                     label[cor(i,j)] = Find(label[bond[0]]);           
-//                 }
-//                 else{
-//                     Union(label[bond[0]],label[cor(i,j)]);
-//                 }
-//             }
-//         }
-//     }
-// }
-
 void SwendsenWang_2D::FlipCluster(){
     bool sNewChosen[N] = {};
     short sNew[N];
-    for(int i = 0; i < N; i++){
-        label[i] = Find(label[i]);
-    }
+    // for(int i = 0; i < N; i++){
+    //     label[i] = Find(label[i]);
+    // }
 
     for(int i = 0; i < N; i++){
+        label[i] = Find(label[i]);
+
         if (!sNewChosen[label[i]]) {    
-            sNew[label[i]] = dis(gen) < 0.5 ? +1 : -1;
+            sNew[label[i]] = int(2*rng());
             sNewChosen[label[i]] = true;
         }
         if(this->sc[i] != sNew[label[i]]){
@@ -393,6 +333,7 @@ void SwendsenWang_2D::FlipCluster(){
 }
 
 void SwendsenWang_2D::Union(int x, int y){
+    // Maybe y should be smaller I guess : labels[x] = y should satisfy x >= y.
     int xx = Find(x);
     int yy = Find(y);
     if (xx > yy)
@@ -400,14 +341,17 @@ void SwendsenWang_2D::Union(int x, int y){
     else
       labels[yy] = xx;
 
-    // maybe y should be smaller I guess
     // labels[Find(x)] = Find(y);
 }
 
+// This function has two roles. First is find the minimum matching label of the number "x".
+// Second it make direct data set by substitue current matching label to number "x".
 int SwendsenWang_2D::Find(int x){
     int y = x;
+    // First : Find minimum matching label
     while(labels[y] != y)
         y = labels[y];
+    // Second: Substitute the minmum matching label directly to labels[x] = y.
     while(labels[x] != x){
         int z = labels[x];
         labels[x] = y;
@@ -416,4 +360,6 @@ int SwendsenWang_2D::Find(int x){
     return y;
 }
 
+#undef cor
+#undef rng
 #endif // ____SwendsenWang_HK____ 

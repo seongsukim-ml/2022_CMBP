@@ -4,16 +4,17 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL = 10; /*Parameter: lattice size*/
+const int kL = 24; /*Parameter: lattice size*/
 const int kN = kL*kL;
-const int kBin = 3; /*Parametr: Change binning of temperature*/
+const int kBin = 50; /*Parametr: Change binning of temperature*/
 const int kB = 0;
 const int kJ = 1;
 
 // T_crit ~ 2.269
-const double Tsrt = T_CRIT*(1-0.08);
-const double Tfin = T_CRIT*(1+0.08);
-
+// const double Tsrt = T_CRIT*(1-0.08);
+// const double Tfin = T_CRIT*(1+0.08);
+const double Tsrt = 2.0;
+const double Tfin = 2.6;
 double isTinf = false;
 
 #ifdef _WIN32

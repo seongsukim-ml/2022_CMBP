@@ -5,15 +5,17 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL = 10; /*Parameter: lattice size*/
-const int kN = kL*kL;
-const int kBin = 3; /*Parametr: Change binning of temperature*/
-const int kB = 0;
-const int kJ = 1;
+const int kL   = 10;        /*Parameter: lattice size*/
+const int kN   = kL*kL;
+const int kBin = 3;        /*Parameter: Change binning of temperature*/
+const int kB   = 0;
+const int kJ   = 1;
 
 // T_crit ~ 2.269
-const double Tsrt = T_CRIT*(1-0.2);
-const double Tfin = T_CRIT*(1+0.2);
+const double Tsrt = T_CRIT*(1-0.08);
+const double Tfin = T_CRIT*(1+0.08);
+// const double Tsrt = 2.2;
+// const double Tfin = 2.35;
 
 double isTinf = false;
 
@@ -53,8 +55,7 @@ void Farewell(int N = 0){
     cout << "-------------------------------------------------------------------------------------------\n";
 }
 
-void handler(int A)
-{
+void handler(int A){
     cout << endl;
     Farewell(1);
     exit(A);
@@ -67,14 +68,15 @@ int main(){
     
     for(int gg = 0; gg < 1; gg++){
         Model model = Model(args);
-        Writer modelW = Writer(kFilename+"final");
-        modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(sigma),sigma**2,sigma**4,HH,HH**2,m_error\n");
+        Writer modelW = Writer(kFilename+"Binder");
+        modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(MM),MM**2,MM**4,HH,HH**2,m_error\n");
+        
+        /* Parameter */
+        int equil_time = 10000;
+        int mcs = 2e6;
+        /*************/
 
-        int equil_time = 1000;
-        int mcs = 1e6;
-
-        int HH;
-        double sigma;
+        double MM, HH;
         double mcs_i = 1/double(mcs);
         double kNi = 1/double(kN);
 
@@ -85,31 +87,30 @@ int main(){
             model.res = vector<double>(5,0);
 
             // equil_time = 50;
-
             // if(model.TV[i]<2.4 || model.TV[i]>2.0) equil_time = 100;
 
             model.IterateUntilEquilibrium(equil_time);
 
             duo value = model.Measure();
             HH = get<0>(value);
-            sigma =  get<1>(value);
+            MM = get<1>(value);
 
             cout <<"idx: " << left << setw(4) << i << "|| " << left << setw(10) << model.TV[i];
-            cout << "|| "  << left << setw(9) << sigma/(double)kN << "  " << left << setw(12) << HH << "|| ";
+            cout << "|| "  << left << setw(9) << MM/(double)kN << "  " << left << setw(12) << HH << "|| ";
 
             double size;
-            for(double j = 0; j < mcs; j++){ // mcs 4000
+            for(int j = 0; j < mcs; j++){
                 size = model.Calculate();
                 
                 value = model.Measure();  
-                HH = get<0>(value);
-                sigma =  get<1>(value)/(double)kN;
+                HH = get<0>(value)/(double)kL;          // = E
+                MM = abs(get<1>(value))/(double)kN;     // = M
                 
-                model.res[0] += abs(sigma)*mcs_i;
-                model.res[1] += (sigma*mcs_i*sigma);
-                model.res[2] += (sigma*mcs_i*sigma)*(sigma*sigma);
-                model.res[3] += HH*mcs_i/(double)kL;
-                model.res[4] += HH*mcs_i*HH/(double)kN;
+                model.res[0] += MM*mcs_i;               // = <m>
+                model.res[1] += (MM*mcs_i*MM);          // = <m^2>
+                model.res[2] += (MM*mcs_i*MM)*(MM*MM);  // = <m^4>
+                model.res[3] += HH*mcs_i;               // = <E>/sqrt(N)
+                model.res[4] += HH*mcs_i*HH;            // = <E^2>/N
             }
 
             model.MV[i] = model.res[0];

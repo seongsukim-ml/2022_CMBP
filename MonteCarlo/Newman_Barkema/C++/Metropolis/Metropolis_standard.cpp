@@ -4,11 +4,11 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL = 5; /*Parameter: lattice size*/
-const int kN = kL*kL;
-const int kBin = 3; /*Parametr: Change binning of temperature*/
-const int kB = 0;
-const int kJ = 1;
+const int kL    = 5;          /*Parameter: lattice size*/
+const int kN    = kL*kL;
+const int kBin  = 3;          /*Parameter: Change binning of temperature*/
+const int kB    = 0;
+const int kJ    = 1;
 
 const double Tsrt = T_CRIT*(1-0.08);
 const double Tfin = T_CRIT*(1+0.08);
@@ -53,8 +53,7 @@ void Farewell(int N = 0){
     cout << "-------------------------------------------------------------------------------------------\n";
 }
 
-void handler(int A) 
-{
+void handler(int A){
     cout << endl;
     Farewell(1);
     exit(A);
@@ -64,30 +63,34 @@ int main(){
     signal(SIGSEGV, &handler);
     signal(SIGINT, &handler);
     Greetings();
+
     for(int gg = 0; gg < 1; gg++){
         Model model = Model(args);
         Writer modelW = Writer(kFilename+"_ensemble");
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L\n");
 
-        int equil_time, mcs = 1000000;
+        /* Parameter */
+        int equil_time = 1000;
+        int mcs = 1e6;
+        /*************/
         double MM, HH;
         double mcs_i = 1/double(mcs);
         double kNi = 1/double(kN);
 
+        cout << showpos;
 
         for(int i = 0; i < kBin; i++){
             model.Initialize(model.BetaV[i]);
             model.res = vector<double>(5,0);
 
-            equil_time = 200;
-
+            // equil_time = 200;
             if(model.TV[i]<=2.4 || model.TV[i]>=2.0) equil_time =1000;
 
-            model.IterateUntilEquilibrium(2000);
+            model.IterateUntilEquilibrium(equil_time);
 
             duo value = model.Measure();
             HH = get<0>(value);
-            MM =  get<1>(value);
+            MM = get<1>(value);
 
             cout <<"idx: " << left << setw(4) << i << "|| " << left << setw(10) << model.TV[i];
             cout << "|| "  << left << setw(9) << MM/(double)kN << "  " << left << setw(12) << int(HH) << "|| ";
@@ -98,12 +101,14 @@ int main(){
                 value = model.Measure_fast();
                 HH = get<0>(value)/(double) kL;        // = E
                 MM = abs(get<1>(value))/(double)kN;    // = M
+
                 model.res[0] += MM*mcs_i;              // = <m>
                 model.res[1] += (MM*mcs_i*MM);         // = <m^2>
                 model.res[2] += (MM*mcs_i*MM)*(MM*MM); // = <m^4>
                 model.res[3] += HH*mcs_i;              // = <E>/sqrt(N)
                 model.res[4] += HH*mcs_i*HH;           // = <E^2>/N
             }
+
             model.MV[i] = model.res[0];
             model.CV[i] = (model.BetaV[i]*model.BetaV[i])*(model.res[4]-model.res[3]*model.res[3]);
 
