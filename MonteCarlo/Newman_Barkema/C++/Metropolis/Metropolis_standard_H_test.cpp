@@ -4,15 +4,15 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL = 100; /*Parameter: lattice size*/
+const int kL = 5; /*Parameter: lattice size*/
 const int kN = kL*kL;
-const int kBin = 1; /*Parametr: Change binning of temperature*/
+const int kBin = 3; /*Parametr: Change binning of temperature*/
 // const int kB = 0;
 double kB = 0;
 const int kJ = 1;
 
-const double Tsrt = 3;
-const double Tfin = 3;
+const double Tsrt = T_CRIT*(1-0.2);
+const double Tfin = T_CRIT*(1+0.2);
 
 double isTinf = false;
 const bool Random = true;
@@ -65,7 +65,7 @@ int main(){
     signal(SIGINT, &handler);
     Greetings();
     vector<double> kBL = {-200,-100,-50,0,50,100,200};
-    for(int gg = 0; gg < 7; gg++){
+    for(int gg = 0; gg < 1; gg++){
         kB = kBL[gg];
         vector<double> args = {kL,kBin,kB,kJ,Tsrt,Tfin,isTinf};
 

@@ -4,14 +4,14 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL = 10; /*Parameter: lattice size*/
+const int kL = 5; /*Parameter: lattice size*/
 const int kN = kL*kL;
-const int kBin = 25; /*Parametr: Change binning of temperature*/
+const int kBin = 3; /*Parametr: Change binning of temperature*/
 const int kB = 0;
 const int kJ = 1;
 
-const double Tsrt = 0;
-const double Tfin = 5;
+const double Tsrt = T_CRIT*(1-0.08);
+const double Tfin = T_CRIT*(1+0.08);
 
 double isTinf = false;
 const bool Random = true;
@@ -69,7 +69,7 @@ int main(){
         Writer modelW = Writer(kFilename+"_ensemble");
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L\n");
 
-        int equil_time, mcs = 1000;
+        int equil_time, mcs = 1000000;
         double MM, HH;
         double mcs_i = 1/double(mcs);
         double kNi = 1/double(kN);

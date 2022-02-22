@@ -100,7 +100,6 @@ class SwendsenWang_2D{
 
         // Sub step of Monte Carlo step.
         int Calculate();
-        int Calculate(int site);
         void IterateUntilEquilibrium(int equil_time);
 
         // HK algorithms parts for SwendsenWang
@@ -109,6 +108,12 @@ class SwendsenWang_2D{
         void Union(int x, int y);
         int Find(int x);
         void FlipCluster();
+        void ClusterBoxDrawing();
+
+        vector<string> A = {"·","╴","╶","─",\
+                    "╷","┐","┌","┬",\
+                    "╵","┘","└","┴",\
+                    "│","┤","├","┼"};
 };
 
 SwendsenWang_2D::SwendsenWang_2D(int L, int bin, double B, double J, double Tsrt, double Tfin, bool isTinf) :L(L), N(L*L), Bin(bin), B(B), J(J), YNN(L){
@@ -199,31 +204,6 @@ duo SwendsenWang_2D::Measure(){
     return make_tuple(HH,sigma);
 }
 
-// void SwendsenWang_2D::Calculate(int _n){
-//     int i, k, delta, n;
-//     n = !_n ? (this->N) : _n;
-//     double a;
-//     for(i = 0; i < n; i++){
-//         // Sweep Randomly
-//         k = (this->N)*dis(gen);
-//         // Sweep Sequential
-//         // k = n
-
-//         delta = (this->SweepHelical(k))*(this->sc[k]);
-        
-//         a = dis(gen);
-//         this->Total_Step++;
-
-//         if(delta <= 0){
-//             this->Fliped_Step++;
-//             this->sc[k] = -(this->sc[k]);
-//         } else if(a < prob[delta]){
-//             this->Fliped_Step++;
-//             this->sc[k] = -(this->sc[k]);
-//         }
-//     }
-// }
-
 int SwendsenWang_2D::Calculate(){
     /*In SwendsenWang algorithm, each clustering and flipping process is one mcs*/
     int size = Fliped_Step;
@@ -235,19 +215,6 @@ int SwendsenWang_2D::Calculate(){
     Total_Step++;
     return Fliped_Step-size;
 }
-
-int SwendsenWang_2D::Calculate(int site){
-    /*In SwendsenWang algorithm, each clustering and flipping process is one mcs*/
-    int i, k, l, sp, cur, size = 0;
-    
-    MakeBonds();
-    ClusterAndLabel();
-    FlipCluster();
-
-    Total_Step++;
-    return size;
-}
-
 
 void SwendsenWang_2D::IterateUntilEquilibrium(int equil_time){
     double k = 0;
@@ -300,10 +267,18 @@ void SwendsenWang_2D::MakeBonds(){
 //     }
 // }
 
-vector<string> A = {"·","╴","╶","─",\
-                    "╷","┐","┌","┬",\
-                    "╵","┘","└","┴",\
-                    "│","┤","├","┼"};
+
+void SwendsenWang_2D::ClusterBoxDrawing(){
+
+    string res = "";
+    for(int j = 0; j < L; j++){
+        for(int i = 0; i < L; i++){
+            res += A[iBondLeft[cor(i,j)] + 2*iBondLeft[cor(i+1,j)] + 4*jBondAbove[cor(i,j+1)]+ 8*jBondAbove[cor(i,j)]];
+        }
+        res += "\n";
+    }
+    cout << "Box Draw\n" << res;    
+}
 
 void SwendsenWang_2D::ClusterAndLabel(){
     int largest_label = 0;
@@ -314,14 +289,7 @@ void SwendsenWang_2D::ClusterAndLabel(){
     int bond[4];
     int bonds_num;
 
-    // string res = "";
-    // for(int j = 0; j < L; j++){
-    //     for(int i = 0; i < L; i++){
-    //         res += A[iBondLeft[cor(i,j)] + 2*iBondLeft[cor(i+1,j)] + 4*jBondAbove[cor(i,j+1)]+ 8*jBondAbove[cor(i,j)]];
-    //     }
-    //     res += "\n";
-    // }
-    // cout << "Box Draw\n" << res;
+    // ClusterBoxDrawing(); // Debugging
 
     for(int j = 0; j < L; j++){
         for(int i = 0; i < L; i++){
@@ -348,7 +316,8 @@ void SwendsenWang_2D::ClusterAndLabel(){
                     // Find minimum label among bonds
                     min_label = largest_label;
                     for(int ll = 0; ll < bonds_num; ll++){
-                        min_label = min_label > label[bond[ll]] ? label[bond[ll]] : min_label;
+                        int proper_label = Find(label[bond[ll]]);
+                        min_label = min_label > proper_label ? proper_label : min_label;
                     }
                     
                     // Union near label to minimum label

@@ -69,7 +69,7 @@ class Metropolis_2D{
         long Calc_call = 0;
 
         static string Name(){return "Metropolis";}
-        Metropolis_2D(int L, int bin, int B, int J, int Tsrt, int Tfin, bool isTinf);
+        Metropolis_2D(int L, int bin, int B, int J, double Tsrt, double Tfin, bool isTinf);
         Metropolis_2D(vector<double> args);
         ~Metropolis_2D(){
             __finish__ = clock();
@@ -88,7 +88,7 @@ class Metropolis_2D{
         void IterateUntilEquilibrium(int equil_time,bool random = true);
 };
 
-Metropolis_2D::Metropolis_2D(int L, int bin, int B, int J, int Tsrt, int Tfin, bool isTinf)
+Metropolis_2D::Metropolis_2D(int L, int bin, int B, int J, double Tsrt, double Tfin, bool isTinf)
 :L(L), N(L*L), Bin(bin), B(B), J(J), YNN(L) {
     this-> isTinf = isTinf;
     this-> sc = new short[N];
