@@ -25,7 +25,7 @@ typedef SwendsenWang_2D Model;
 
 clock_t __start__, __finish__;
 
-void Greetings(){
+void Greetings(int kL){
     string Tat = isTinf ? "inf" : "0";
 
     cout << Model::Name() + " Algorithm\n";
@@ -57,13 +57,14 @@ void handler(int A){
 int main(){
     signal(SIGSEGV, &handler);
     signal(SIGINT, &handler);
-    Greetings();
     
     vector<int> kLL = {4,8,16,32,64,128,256,512};
 
     for(int gg = 0; gg < 8; gg++){
         double kL = kLL[gg];
         double kN = kL*kL;
+    
+        Greetings();
 
         #ifdef _WIN32
         static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
@@ -71,7 +72,7 @@ int main(){
         #ifdef linux
         static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
         #endif //linux
-        
+
         vector<double> args = {kL,kBin,kB,kJ,Tsrt,Tfin,isTinf};
 
         Model model = Model(args);
