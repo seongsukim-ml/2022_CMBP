@@ -5,7 +5,7 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL   = 100;        /*Parameter: lattice size*/
+const int kL   = 10;        /*Parameter: lattice size*/
 const int kN   = kL*kL;
 const int kBin = 25;        /*Parameter: Change binning of temperature*/
 const int kB   = 0;
@@ -74,7 +74,7 @@ int main(){
         
         /* Parameter */
         int equil_time = 0;
-        int mcs = 2e5;
+        int mcs = 1e5;
         /*************/
 
         double MM, HH;

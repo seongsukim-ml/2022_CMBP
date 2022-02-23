@@ -5,17 +5,17 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL   = 10;        /*Parameter: lattice size*/
+const int kL   = 5;        /*Parameter: lattice size*/
 const int kN   = kL*kL;
-const int kBin = 3;        /*Parameter: Change binning of temperature*/
+const int kBin = 40;        /*Parameter: Change binning of temperature*/
 const int kB   = 0;
 const int kJ   = 1;
 
 // T_crit ~ 2.269
-const double Tsrt = T_CRIT*(1-0.08);
-const double Tfin = T_CRIT*(1+0.08);
-// const double Tsrt = 2.2;
-// const double Tfin = 2.35;
+// const double Tsrt = T_CRIT*(1-0.2);
+// const double Tfin = T_CRIT*(1+0.2);
+const double Tsrt = 0; // 2.2
+const double Tfin = 5; // 2.35
 
 double isTinf = false;
 
@@ -73,7 +73,7 @@ int main(){
         
         /* Parameter */
         int equil_time = 10000;
-        int mcs = 2e6;
+        int mcs = 1e5;
         /*************/
 
         double MM, HH;
