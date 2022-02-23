@@ -21,13 +21,6 @@ double isTinf = false;
 
 typedef SwendsenWang_2D Model;
 
-#ifdef _WIN32
-static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
-#endif //_WIN32
-#ifdef linux
-static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
-#endif //linux
-
 // vector<double> args = {kL,kBin,kB,kJ,Tsrt,Tfin,isTinf};
 
 clock_t __start__, __finish__;
@@ -71,6 +64,14 @@ int main(){
     for(int gg = 0; gg < 8; gg++){
         double kL = kLL[gg];
         double kN = kL*kL;
+
+        #ifdef _WIN32
+        static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
+        #endif //_WIN32
+        #ifdef linux
+        static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
+        #endif //linux
+        
         vector<double> args = {kL,kBin,kB,kJ,Tsrt,Tfin,isTinf};
 
         Model model = Model(args);
