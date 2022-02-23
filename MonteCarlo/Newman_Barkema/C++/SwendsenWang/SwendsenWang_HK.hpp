@@ -314,15 +314,13 @@ void SwendsenWang_2D::ClusterAndLabel(){
 void SwendsenWang_2D::FlipCluster(){
     bool sNewChosen[N] = {};
     short sNew[N];
-    // for(int i = 0; i < N; i++){
-    //     label[i] = Find(label[i]);
-    // }
-
     for(int i = 0; i < N; i++){
         label[i] = Find(label[i]);
+    }
 
+    for(int i = 0; i < N; i++){
         if (!sNewChosen[label[i]]) {    
-            sNew[label[i]] = int(2*rng());
+            sNew[label[i]] = 2*int(2*rng())-1;
             sNewChosen[label[i]] = true;
         }
         if(this->sc[i] != sNew[label[i]]){
