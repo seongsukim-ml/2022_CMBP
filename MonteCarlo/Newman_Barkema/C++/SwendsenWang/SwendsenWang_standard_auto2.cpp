@@ -143,6 +143,7 @@ int main(){
             modelW.WriteLine(temp);
         }
         modelW.CloseNewFile();
+        modelW2.CloseNewFile();
     }
     Farewell();
 }
