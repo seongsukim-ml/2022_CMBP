@@ -63,14 +63,14 @@ int main(){
     signal(SIGINT, &handler);
     Greetings();
     
-    for(int g = 0; g < 8; g++){
+    for(int g = 0; g < 1; g++){
         Model model = Model(args);
-        Writer modelW = Writer(kFilename + "_no_equi2");
-        Writer modelW2 = Writer(kFilename + "_auto2");
+        Writer modelW = Writer(kFilename + "_auto3");
+        Writer modelW2 = Writer(kFilename + "_auto4");
 
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(sigma),sigma**2,sigma**4,HH,HH**2,m_error\n");
 
-        int HH, equil_time, mcs = 1500;
+        int HH, equil_time, mcs = 1e5;
         double sigma;
         double mcs_i = 1/double(mcs);
         double kNi = 1/double(kN);

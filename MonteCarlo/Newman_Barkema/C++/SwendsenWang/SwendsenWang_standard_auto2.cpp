@@ -64,7 +64,7 @@ int main(){
         double kL = kLL[gg];
         double kN = kL*kL;
     
-        Greetings();
+        Greetings(kL);
 
         #ifdef _WIN32
         static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
