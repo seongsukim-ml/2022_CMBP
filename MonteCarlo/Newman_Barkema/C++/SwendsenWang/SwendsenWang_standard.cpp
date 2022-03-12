@@ -5,17 +5,24 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL = 10; /*Parameter: lattice size*/
+/***************** Parameters 1 *****************/
+const int kL = 100; /*Parameter: lattice size*/
 const int kN = kL*kL;
-const int kBin = 3; /*Parametr: Change binning of temperature*/
+const int kBin = 25; /*Parametr: Change binning of temperature*/
 const int kB = 0;
 const int kJ = 1;
 
 // T_crit ~ 2.269
-const double Tsrt = T_CRIT*(1-0.2);
-const double Tfin = T_CRIT*(1+0.2);
+// const double Tsrt = T_CRIT*(1-0.1);
+// const double Tfin = T_CRIT*(1+0.1);
+const double Tsrt = 2.2;
+const double Tfin = 2.35;
 
 double isTinf = false;
+
+int equil_time = 1000;
+int mcs = 1e6;
+/***************** Parameters 1 *****************/
 
 typedef SwendsenWang_2D Model;
 
@@ -53,8 +60,7 @@ void Farewell(int N = 0){
     cout << "-------------------------------------------------------------------------------------------\n";
 }
 
-void handler(int A)
-{
+void handler(int A){
     cout << endl;
     Farewell(1);
     exit(A);
@@ -70,8 +76,7 @@ int main(){
         Writer modelW = Writer(kFilename+"final");
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(sigma),sigma**2,sigma**4,HH,HH**2,m_error\n");
 
-        int equil_time = 100;
-        int mcs = 1e5;
+
 
         int HH;
         double sigma;
