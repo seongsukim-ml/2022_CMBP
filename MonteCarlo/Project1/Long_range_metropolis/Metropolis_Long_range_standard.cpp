@@ -4,19 +4,19 @@
 #include <iomanip>
 
 /***************** Parameters 1 *****************/
-const int kL          = 128;          /*Parameter: lattice size*/
+const int kL          = 48;          /*Parameter: lattice size*/
 const int kN          = kL*kL;
 const int kBin        = 25;          /*Parameter: Change binning of temperature*/
 const double kB       = 0;
 const double kJ       = 1;
-const double alpha    = 3;
+const double alpha    = 2;
 
 
 // const double Tsrt = T_CRIT*(1-0.08);
 // const double Tfin = T_CRIT*(1+0.08);
 
-const double Tsrt = 6.4;
-const double Tfin = 8.4;
+const double Tsrt = 4;
+const double Tfin = 5;
 // const double Tsrt = 0;
 // const double Tfin = 8;
 
@@ -24,7 +24,7 @@ const double Tfin = 8.4;
 const double isTinf = false;
 const bool Random = false;
 
-const int equil_time_base = 20;
+const int equil_time_base = 128;
 int equil_time = equil_time_base;
 int mcs = 1e5;
 /***************** Parameters 1 *****************/
@@ -33,10 +33,10 @@ typedef Metropolis_LR_2D Model;
 
 // Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
 #ifdef _WIN32
-static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs);
+static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
 #endif
 #ifdef linux
-static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs);
+static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
 #endif
 
 // clock used to measure time
