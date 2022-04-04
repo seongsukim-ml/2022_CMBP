@@ -29,10 +29,10 @@ typedef Metropolis_LR_2D Model;
 
 // Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
 #ifdef _WIN32
-static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
+static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs);
 #endif
 #ifdef linux
-static string kFilename = "./Result/Metropolis"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
+static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs);
 #endif
 
 // clock used to measure time

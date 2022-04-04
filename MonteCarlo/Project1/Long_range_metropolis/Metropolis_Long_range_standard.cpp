@@ -26,17 +26,17 @@ const bool Random = false;
 
 const int equil_time_base = 20;
 int equil_time = equil_time_base;
-int mcs = 1e4;
+int mcs = 1e5;
 /***************** Parameters 1 *****************/
 
 typedef Metropolis_LR_2D Model;
 
 // Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
 #ifdef _WIN32
-static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
+static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs);
 #endif
 #ifdef linux
-static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin);
+static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs);
 #endif
 
 // clock used to measure time
