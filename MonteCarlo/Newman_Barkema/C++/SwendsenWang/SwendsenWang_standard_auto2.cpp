@@ -7,15 +7,15 @@
 
 // const int kL   = 10;        /*Parameter: lattice size*/
 // const int kN   = kL*kL;
-const int kBin = 1;        /*Parameter: Change binning of temperature*/
+const int kBin = 25;        /*Parameter: Change binning of temperature*/
 const int kB   = 0;
 const int kJ   = 1;
 
 // T_crit ~ 2.269
-const double Tsrt = T_CRIT;
-const double Tfin = T_CRIT;
-// const double Tsrt = 2.2;
-// const double Tfin = 2.35;
+// const double Tsrt = T_CRIT;
+// const double Tfin = T_CRIT;
+const double Tsrt = 2.2;
+const double Tfin = 2.35;
 
 double isTinf = false;
 
@@ -58,9 +58,10 @@ int main(){
     signal(SIGSEGV, &handler);
     signal(SIGINT, &handler);
     
-    vector<int> kLL = {4,8,16,32,64,128,256,512};
+    // vector<int> kLL = {4,8,16,32,64,128,256,512};
+    vector<int> kLL = {24,32,48,64,96};
 
-    for(int gg = 0; gg < 8; gg++){
+    for(int gg = 0; gg < kLL.size(); gg++){
         double kL = kLL[gg];
         double kN = kL*kL;
     
@@ -76,12 +77,12 @@ int main(){
         vector<double> args = {kL,kBin,kB,kJ,Tsrt,Tfin,isTinf};
 
         Model model = Model(args);
-        Writer modelW = Writer(kFilename+"_auto3");
-        Writer modelW2 = Writer(kFilename + "_auto4");
+        Writer modelW = Writer(kFilename+"1e5_auto3");
+        // Writer modelW2 = Writer(kFilename + "1e5_auto4");
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(MM),MM**2,MM**4,HH,HH**2,m_error\n");
         
         /* Parameter */
-        int equil_time = 0;
+        int equil_time = 100;
         int mcs = 1e5;
         /*************/
 
@@ -106,7 +107,7 @@ int main(){
 
             cout <<"idx: " << left << setw(4) << i << "|| " << left << setw(10) << model.TV[i];
             cout << "|| "  << left << setw(9) << MM/(double)kN << "  " << left << setw(12) << HH << "|| ";
-            modelW2.WriteLine(model.TV[i]);
+            // modelW2.WriteLine(model.TV[i]);
 
             double size;
             for(int j = 0; j < mcs; j++){
@@ -122,12 +123,12 @@ int main(){
                 model.res[3] += HH*mcs_i;               // = <E>/sqrt(N)
                 model.res[4] += HH*mcs_i*HH;            // = <E^2>/N
 
-                modelW2.WriteLine(",");
-                modelW2.WriteLine(MM);
+                // modelW2.WriteLine(",");
+                // modelW2.WriteLine(MM);
             }
-            modelW2.WriteLine(",");
-            modelW2.WriteLine(1);
-            modelW2.WriteLine("\n");
+            // modelW2.WriteLine(",");
+            // modelW2.WriteLine(1);
+            // modelW2.WriteLine("\n");
 
             model.MV[i] = model.res[0];
             model.CV[i] = (model.BetaV[i]*model.BetaV[i])*(model.res[4]-model.res[3]*model.res[3]);        
@@ -143,7 +144,7 @@ int main(){
             modelW.WriteLine(temp);
         }
         modelW.CloseNewFile();
-        modelW2.CloseNewFile();
+        // modelW2.CloseNewFile();
     }
     Farewell();
 }

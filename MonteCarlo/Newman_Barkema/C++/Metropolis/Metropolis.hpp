@@ -170,6 +170,7 @@ duo Metropolis_2D::Measure(){
     int res = 0, sigma = 0;
     for(i = 0; i < N; i++){
         sum = this->BoundaryHelical(i);
+        // cout << i << ' ' << sum << '\n';
         res += J*sum*sc[i];
         sigma += sc[i];
     }
