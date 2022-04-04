@@ -5,7 +5,8 @@
 #include <iostream>
 #include <iomanip>
 
-const int kL   = 10;        /*Parameter: lattice size*/
+/***************** Parameters 1 *****************/
+const int kL   = 100;       /*Parameter: lattice size*/
 const int kN   = kL*kL;
 const int kBin = 25;        /*Parameter: Change binning of temperature*/
 const int kB   = 0;
@@ -18,6 +19,10 @@ const double Tsrt = 2.2;
 const double Tfin = 2.35;
 
 double isTinf = false;
+
+int equil_time = 2000;
+int mcs = 1e6;
+/***************** Parameters 1 *****************/
 
 typedef SwendsenWang_2D Model;
 
@@ -71,11 +76,6 @@ int main(){
         Writer modelW = Writer(kFilename+"_auto1");
         Writer modelW2 = Writer(kFilename + "_auto2");
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(MM),MM**2,MM**4,HH,HH**2,m_error\n");
-        
-        /* Parameter */
-        int equil_time = 0;
-        int mcs = 1e5;
-        /*************/
 
         double MM, HH;
         double mcs_i = 1/double(mcs);
@@ -108,7 +108,7 @@ int main(){
                 HH = get<0>(value)/(double)kL;          // = E
                 MM = get<1>(value)/(double)kN;          // = M
                 
-                model.res[0] += abs(MM)*mcs_i;               // = <m>
+                model.res[0] += abs(MM)*mcs_i;          // = <m>
                 model.res[1] += (MM*mcs_i*MM);          // = <m^2>
                 model.res[2] += (MM*mcs_i*MM)*(MM*MM);  // = <m^4>
                 model.res[3] += HH*mcs_i;               // = <E>/sqrt(N)
@@ -135,6 +135,7 @@ int main(){
             modelW.WriteLine(temp);
         }
         modelW.CloseNewFile();
+        modelW2.CloseNewFile();
     }
     Farewell();
 }
