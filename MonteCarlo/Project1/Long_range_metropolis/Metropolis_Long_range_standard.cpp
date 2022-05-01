@@ -15,8 +15,8 @@ const double alpha    = 2+1;
 // const double Tsrt = T_CRIT*(1-0.08);
 // const double Tfin = T_CRIT*(1+0.08);
 
-const double Tsrt = 5.5;
-const double Tfin = 6.5;
+const double Tsrt = 7;
+const double Tfin = 8;
 // const double Tsrt = 0;
 // const double Tfin = 8;
 
@@ -24,9 +24,9 @@ const double Tfin = 6.5;
 const double isTinf = false;
 const bool Random = false;
 
-const int equil_time_base = 1e4;
+const int equil_time_base = 1e5;
 int equil_time = equil_time_base;
-int mcs = 5e4;
+int mcs = 5e5;
 /***************** Parameters 1 *****************/
 
 typedef Metropolis_LR_2D Model;
