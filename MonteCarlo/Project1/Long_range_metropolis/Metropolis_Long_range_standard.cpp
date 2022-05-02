@@ -4,7 +4,7 @@
 #include <iomanip>
 
 /***************** Parameters 1 *****************/
-const int kL          = 16;          /*Parameter: lattice size*/
+const int kL          = 8;          /*Parameter: lattice size*/
 const int kN          = kL*kL;
 const int kBin        = 20;          /*Parameter: Change binning of temperature*/
 const double kB       = 0;
