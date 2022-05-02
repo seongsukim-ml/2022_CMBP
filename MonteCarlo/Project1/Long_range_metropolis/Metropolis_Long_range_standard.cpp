@@ -26,7 +26,7 @@ const bool Random = false;
 
 const int equil_time_base = 1e5;
 int equil_time = equil_time_base;
-int mcs = 5e5;
+int mcs = 1e6;
 /***************** Parameters 1 *****************/
 
 typedef Metropolis_LR_2D Model;
