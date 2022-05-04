@@ -11,15 +11,8 @@ const double kB       = 0;
 const double kJ       = 1;
 const double alpha    = 2+1;
 
-
-// const double Tsrt = T_CRIT*(1-0.08);
-// const double Tfin = T_CRIT*(1+0.08);
-
 const double Tsrt = 7;
 const double Tfin = 8;
-// const double Tsrt = 0;
-// const double Tfin = 8;
-
 
 const double isTinf = false;
 const bool Random = false;
@@ -87,7 +80,9 @@ int main(){
     for(int gg = 0; gg < 1; gg++){
         Model model = Model(args);
         Writer modelW = Writer(kFilename+"_Test_");
+        
         modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L\n");
+        modelW.CloseNewFile();
 
         double MM, HH;
         double mcs_i = 1/double(mcs);
@@ -137,7 +132,10 @@ int main(){
             string temp = to_string(i) + "," + to_string(model.TV[i]) + "," + to_string(model.MV[i]) + "," + to_string(model.CV[i]) + ",";
             temp = temp + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
             temp = temp + to_string(model.res[3]) + "," + to_string(model.res[4]) + "\n";
+
+            modelW.OpenNewFile();
             modelW.WriteLine(temp);
+            modelW.CloseNewFile();
         }
         modelW.CloseNewFile();
     }
