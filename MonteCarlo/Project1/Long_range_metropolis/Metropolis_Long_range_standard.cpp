@@ -48,8 +48,6 @@ void Greetings(){
     
     // Show +/- sign
     cout << showpos;
-
-
     __start__ = clock();
 }
 
@@ -104,7 +102,7 @@ int main(){
             cout <<"idx: " << left << setw(4) << i << "|| " << left << setw(10) << model.TV[i];
             cout << "|| "  << left << setw(9) << MM/(double)kN << "  " << left << setw(12) << HH << "|| ";
 
-            // Monte Carlo Step and Caculate the data
+            /***********Monte Carlo Step and Caculate the data***********/
             for(int j = 0; j < mcs; j++){
                 model.Calculate();                     //O(N^2)
 
@@ -118,10 +116,12 @@ int main(){
                 model.res[3] += HH*mcs_i;              // = <E>/sqrt(N)
                 model.res[4] += HH*mcs_i*HH;           // = <E^2>/N
             }
+            /***********************************************************/
 
-            // Calculate Magnetizaition and Specific Heat.
+            /*******Calculate Magnetizaition and Specific Heat.*********/
             model.MV[i] = model.res[0];
             model.CV[i] = (model.BetaV[i]*model.BetaV[i])*(model.res[4]-model.res[3]*model.res[3]);
+            /***********************************************************/
 
             cout << left << setw(13) << model.MV[i] << "  " << right << setw(13) << model.CV[i] << "|| ";
             cout << left << setw(14) << model.Fliped_Step << "  " << left << setw(10) << model.Total_Step << endl;
