@@ -17,9 +17,9 @@ const double Tfin = 8;
 const double isTinf = false;
 const bool Random = false;
 
-const int equil_time_base = 1e5;
+const int equil_time_base = 1e4;
 int equil_time = equil_time_base;
-int mcs = 1e6;
+int mcs = 1e4;
 /***************** Parameters 1 *****************/
 
 typedef Metropolis_LR_2D Model;
@@ -71,6 +71,7 @@ void handler(int A){
 
 // arguments list that helps to pass the args to model
 vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf};
+vector<string> result_to_file = vector<string>();
 
 int main(){
     signal(SIGSEGV, &handler);
@@ -79,10 +80,6 @@ int main(){
 
     for(int gg = 0; gg < 1; gg++){
         Model model = Model(args);
-        Writer modelW = Writer(kFilename+"_Test_");
-        
-        modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L\n");
-        modelW.CloseNewFile();
 
         double MM, HH;
         double mcs_i = 1/double(mcs);
@@ -129,15 +126,20 @@ int main(){
             cout << left << setw(13) << model.MV[i] << "  " << right << setw(13) << model.CV[i] << "|| ";
             cout << left << setw(14) << model.Fliped_Step << "  " << left << setw(10) << model.Total_Step << endl;
 
-            string temp = to_string(i) + "," + to_string(model.TV[i]) + "," + to_string(model.MV[i]) + "," + to_string(model.CV[i]) + ",";
-            temp = temp + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
-            temp = temp + to_string(model.res[3]) + "," + to_string(model.res[4]) + "\n";
+            string result = to_string(i) + "," + to_string(model.TV[i]) + "," + to_string(model.MV[i]) + "," + to_string(model.CV[i]) + ",";
+            result = result + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
+            result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + "\n";
 
-            modelW.OpenNewFile();
-            modelW.WriteLine(temp);
-            modelW.CloseNewFile();
+            result_to_file.push_back(result);
         }
+
+        /***********Save the result of the Calculation**********/
+        Writer modelW = Writer(kFilename+"_Test_");
+        modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L\n");
+        for(int i = 0; i < kBin; i++)
+            modelW.WriteLine(result_to_file.at(i));
         modelW.CloseNewFile();
+        /******************************************************/
     }
     Farewell();
 }
