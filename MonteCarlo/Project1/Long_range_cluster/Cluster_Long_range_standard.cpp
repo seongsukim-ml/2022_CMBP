@@ -1,18 +1,18 @@
-#include "Metropolis_Long_range.hpp"
+#include "Cluster_Long_range.hpp"
 #include "../../headers/Writer.hpp"
 #include <iostream>
 #include <iomanip>
 
 /***************** Parameters 1 *****************/
-const int kL          = 36;          /*Parameter: lattice size*/
+const int kL          = 5;          /*Parameter: lattice size*/
 const int kN          = kL*kL;
-const int kBin        = 20;          /*Parameter: Change binning of temperature*/
+const int kBin        = 40;          /*Parameter: Change binning of temperature*/
 const double kB       = 0;
 const double kJ       = 1;
 const double alpha    = 2+100;
 
-const double Tsrt = 2.2;
-const double Tfin = 2.4;
+const double Tsrt = 0;
+const double Tfin = 5;
 
 const double isTinf = false;
 const bool Random = false;
@@ -22,7 +22,7 @@ int equil_time = equil_time_base;
 int mcs = 1e5;
 /***************** Parameters 1 *****************/
 
-typedef Metropolis_LR_2D Model;
+typedef Cluster_LR_2D Model;
 
 // Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
 #ifdef _WIN32
@@ -147,3 +147,12 @@ int main(){
 // Memo
 // 3.27 : at kL=64, alpha = 3, equil = 20, mcs = 100
 // phase transition of magnetization occurs near 7.2 to 8.4
+
+// 05.07
+// 이 모델이 short range에서는 맞는지 먼저 확인하려고 했음. 그래서 alpha = 100으로 두고 5by5계산을 했는데
+// SR metropolis 모델이랑 specific heat이 생각보다 크게 차이남. magnetization도 차이가 나긴하는데, 적고, specific heat은
+// peak위치도 다르고, 값도 약 1.5배 차이남.
+// 그래서 지금 가설이 1) 위 모델의 계산에서 Hamiltonian계산이 잘못 되고 있다. 혹은 mcs를 잘 못 나누고 있다. 2) 그냥 모델 자체의 로직이
+// 잘못된거다. 로 생각하고 있음. 아마도 2번인거 같은데.. 어디서 잘못되고 있는지 모르겠음.
+
+// 논문에서 제시한 새로운 partion function을 도입해야하나?
