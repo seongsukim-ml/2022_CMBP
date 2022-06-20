@@ -167,7 +167,8 @@ double Cluster_LR_2D::JTot(){ // Sum of J_ij where j > i
     for(int j = i+1; j < N; j++){
         i_of_bond[N*i - i*(i+1)/2 + (j-i-1)] = i;
         // cout << N*i - i*(i+1)/2 + (j-i-1) << '\n';
-        J_tot += pow(e2d.dist_ij(i,j),-alpha);
+        // J_tot += J*pow(e2d.dist_ij(i,j),-alpha);
+        J_tot += J*e2d.pi_ij(i,j);
     }
     return J_tot;
 }
@@ -316,7 +317,9 @@ void Cluster_LR_2D::WalkerTableGenerator(double eps){ // 제대로 작동하고 
     // double a = 0;
     for(int i = 0;   i < N; i++)
     for(int j = i+1; j < N; j++){
-        double prob = pow(e2d.dist_ij(i,j),-alpha)*N*(N-1)/2/J_tot;
+        // double prob = pow(e2d.dist_ij(i,j),-alpha)*N*(N-1)/2/J_tot;
+        double prob = J*e2d.pi_ij(i,j)*N*(N-1)/2/J_tot;
+
         int cur_point = N*i - i*(i+1)/2 + (j-i-1);
         // cout << cur_point << " " << prob << '\n';
         if(prob > 1) overfull.push_back(cur_point);

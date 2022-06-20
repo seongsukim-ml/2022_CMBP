@@ -58,6 +58,8 @@ void handler(int A){
 
 // arguments list that helps to pass the args to model
 vector<string> result_to_file = vector<string>();
+string output_path = "";
+
 
 int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv[1]--> Input parameter)
     signal(SIGSEGV, &handler);
@@ -70,14 +72,17 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         isTinf = input[7]; Random = input[8];
         equil_time_base = input[9]; mcs = input [10];        
     }
+    if(argn >=3){
+        output_path = argv[2];
+    }
     // arguments list that helps to pass the args to model
     vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};    
     // Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
     #ifdef _WIN32
-    static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
+    static string kFilename = ".\\Result\\"+output_path+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
     #endif
     #ifdef linux
-    static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
+    static string kFilename = "./Result/"+output_path+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
     #endif
     Greetings();
 
