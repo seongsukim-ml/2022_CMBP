@@ -21,14 +21,6 @@ int mcs = 1e5;
 
 typedef Metropolis_LR_2D Model;
 
-// Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
-#ifdef _WIN32
-static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
-#endif
-#ifdef linux
-static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
-#endif
-
 // clock used to measure time
 clock_t __start__, __finish__;
 
@@ -73,13 +65,21 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     if(argn >= 2){
         string Input_file = argv[1];
         vector<double> input = Writer::Argument_reader(Input_file,11);
-        kL = (int)input[0]; kBin = (int)input[1]; kB = input[2]; kJ = input[3];
+        kL = (int)input[0]; kN = kL*kL; kBin = (int)input[1]; kB = input[2]; kJ = input[3];
         alpha = input[4]; Tsrt = input[5]; Tfin = input[6];
         isTinf = input[7]; Random = input[8];
         equil_time_base = input[9]; mcs = input [10];        
     }
     // arguments list that helps to pass the args to model
     vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};
+
+    // Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
+    #ifdef _WIN32
+    static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
+    #endif
+    #ifdef linux
+    static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
+    #endif
 
     Greetings();
 

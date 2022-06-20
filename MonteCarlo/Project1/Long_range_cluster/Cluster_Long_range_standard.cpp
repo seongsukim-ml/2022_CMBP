@@ -4,20 +4,17 @@
 #include <iomanip>
 
 /***************** Parameters 1 *****************/
-const int kL          = 5;          /*Parameter: lattice size*/
-const int kN          = kL*kL;
-const int kBin        = 40;          /*Parameter: Change binning of temperature*/
-const double kB       = 0;
-const double kJ       = 1;
-const double alpha    = 2+100;
-
-const double Tsrt = 0;
-const double Tfin = 5;
-
-const double isTinf = false;
-const bool Random = false;
-
-const int equil_time_base = 1e4;
+int kL          = 5;          /*Parameter: lattice size*/
+int kN          = kL*kL;
+int kBin        = 40;          /*Parameter: Change binning of temperature*/
+double kB       = 0;
+double kJ       = 1;
+double alpha    = 2+100;
+double Tsrt = 0;
+double Tfin = 5;
+double isTinf = false;
+bool Random = false;
+int equil_time_base = 1e4;
 int equil_time = equil_time_base;
 int mcs = 1e5;
 /***************** Parameters 1 *****************/
@@ -68,12 +65,21 @@ void handler(int A){
 }
 
 // arguments list that helps to pass the args to model
-vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf};
 vector<string> result_to_file = vector<string>();
 
-int main(){
+int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv[1]--> Input parameter)
     signal(SIGSEGV, &handler);
     signal(SIGINT, &handler);
+    if(argn >= 2){
+        string Input_file = argv[1];
+        vector<double> input = Writer::Argument_reader(Input_file,11);
+        kL = (int)input[0]; kN = kL*kL; kBin = (int)input[1]; kB = input[2]; kJ = input[3];
+        alpha = input[4]; Tsrt = input[5]; Tfin = input[6];
+        isTinf = input[7]; Random = input[8];
+        equil_time_base = input[9]; mcs = input [10];        
+    }
+    // arguments list that helps to pass the args to model
+    vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};
     Greetings();
 
     for(int gg = 0; gg < 1; gg++){

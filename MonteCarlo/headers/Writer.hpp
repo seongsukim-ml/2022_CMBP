@@ -53,7 +53,6 @@ class Writer {
                 double data;
                 mf >> data;
                 res.push_back(data);
-                cout << res[i] << " " << '\n';
             }
             mf.close();
             return res;
