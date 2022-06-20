@@ -6,149 +6,42 @@ L = 8, bin = 20, Start T at 0
 ------------------------------------------------------------------------------------------------------------------
 +195.127628
 blah
-+14 +21 -1 +1
-+18 +26 +1 -1
-+16 +24 -1 -1
-+55 +63 +1 +1
-+14 +29 -1 -1
-+47 +55 +1 +1
-+43 +60 -1 -1
-+3 +21 -1 +1
-+17 +18 -1 +1
-+34 +49 -1 -1
-+31 +54 -1 -1
-+28 +37 -1 -1
-+29 +36 -1 -1
-+40 +42 +1 -1
-+54 +61 -1 +1
-i is +0
-i is empty
-i is +1
-i is empty
-i is +2
-i is empty
-i is +3
-i is empty
-i is +4
-i is empty
-i is +5
-i is empty
-i is +6
-i is empty
-i is +7
-i is empty
-i is +8
-i is empty
-i is +9
-i is empty
-i is +10
-i is empty
-i is +11
-i is empty
-i is +12
-i is empty
-i is +13
-i is empty
-i is +14
+
+
+d+16 +24 -1 -1
+d+55 +63 +1 +1
+d+14 +29 -1 -1
+d+47 +55 +1 +1
+d+43 +60 -1 -1
+
+
+d+34 +49 -1 -1
+d+31 +54 -1 -1
+d+28 +37 -1 -1
+d+29 +36 -1 -1
+
 +14
 +29
 +36
-i is +15
-i is empty
-i is +16
+
 +16
 +24
-i is +17
-i is empty
-i is +18
-i is empty
-i is +19
-i is empty
-i is +20
-i is empty
-i is +21
-i is empty
-i is +22
-i is empty
-i is +23
-i is empty
-i is +24
-i is +25
-i is empty
-i is +26
-i is empty
-i is +27
-i is empty
-i is +28
+
 +28
 +37
-i is +29
-i is +30
-i is empty
-i is +31
+
 +31
 +54
-i is +32
-i is empty
-i is +33
-i is empty
-i is +34
+
 +34
 +49
-i is +35
-i is empty
-i is +36
-i is +37
-i is +38
-i is empty
-i is +39
-i is empty
-i is +40
-i is empty
-i is +41
-i is empty
-i is +42
-i is empty
-i is +43
+
 +43
 +60
-i is +44
-i is empty
-i is +45
-i is empty
-i is +46
-i is empty
-i is +47
+
 +47
 +55
 +63
-i is +48
-i is empty
-i is +49
-i is +50
-i is empty
-i is +51
-i is empty
-i is +52
-i is empty
-i is +53
-i is empty
-i is +54
-i is +55
-i is +56
-i is empty
-i is +57
-i is empty
-i is +58
-i is empty
-i is +59
-i is empty
-i is +60
-i is +61
-i is empty
-i is +62
-i is empty
-i is +63
 ------------------------------------------------------------------------------------------------------------------
 Model calculation finished. Spent time: +0.015053
 ------------------------------------------------------------------------------------------------------------------
