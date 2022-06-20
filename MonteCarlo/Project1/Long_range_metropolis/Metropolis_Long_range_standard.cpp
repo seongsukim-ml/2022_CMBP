@@ -4,9 +4,9 @@
 #include <iomanip>
 
 /***************** Parameters 1 *****************/
-const int kL          = 8;          /*Parameter: lattice size*/
+const int kL          = 48;          /*Parameter: lattice size*/
 const int kN          = kL*kL;
-const int kBin        = 20;          /*Parameter: Change binning of temperature*/
+const int kBin        = 51;          /*Parameter: Change binning of temperature*/
 const double kB       = 0;
 const double kJ       = 1;
 const double alpha    = 2+1;
@@ -15,8 +15,8 @@ const double alpha    = 2+1;
 // const double Tsrt = T_CRIT*(1-0.08);
 // const double Tfin = T_CRIT*(1+0.08);
 
-const double Tsrt = 7;
-const double Tfin = 8;
+const double Tsrt = 6;
+const double Tfin = 8.5;
 // const double Tsrt = 0;
 // const double Tfin = 8;
 
