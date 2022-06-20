@@ -149,6 +149,7 @@ double Cluster_LR_2D::Prob(double delta){
 }
 
 // https://kr.mathworks.com/matlabcentral/answers/28161-poisson-random-number-generator
+// Mean이 lambdatot보다 1크게 나옴 -> -1 더해서 사용
 double Cluster_LR_2D::PoissonNumberGenerator(double lambdaTot){
     int k = 1;
     double prod = dis(gen);
@@ -243,15 +244,15 @@ duo Cluster_LR_2D::Measure_fast(){
 
 void Cluster_LR_2D::Calculate(int _n, bool Random){
     double lambda_tot = 2*cur_beta*J_tot;
-    int iter_k = PoissonNumberGenerator(lambda_tot);
+    int iter_k = PoissonNumberGenerator(lambda_tot-1);
     // cout << "iter_k " << iter_k << endl;
     vector<short> bond_list = vector<short>(N*(N-1)/2,0); // hashset을 써야하나?
     vector<set<int>> adj = vector<set<int>>(N);
     for(int it = 0; it < iter_k; it++){ // O(lambda)
-        int l = ((N*(N-1))/2)*dis(gen);
-        
-        if(dis(gen) > Walker_Table_P[l]) // 실패했을때에 Table A를 참조해야지
-            l = Walker_Table_A[l]; //이게 잘 되고 있는지 확인할 방법이 있을까..? 어려운데;
+        // Walker's Alias Method
+        int l = ((N*(N-1))/2)*dis(gen);    
+        if(dis(gen) > Walker_Table_P[l])
+            l = Walker_Table_A[l];
 
         int i = i_of_bond[l];
         int j = l- (N*i - i*(i+1)/2 + (-i-1));
@@ -270,7 +271,7 @@ void Cluster_LR_2D::Calculate(int _n, bool Random){
     queue<int> que;
     for(int i = 0; i < N; i++){ //O(N+lambda) = O(N+E)
         // cout << "i is " << i << "\n";
-        if(visited[i])
+        if(visited[i] == true)
             continue;
         if(adj[i].empty()){
             // cout << "i is empty" << '\n';
@@ -279,7 +280,6 @@ void Cluster_LR_2D::Calculate(int _n, bool Random){
         }
 
         int mul = 2*(int)(dis(gen)*2) -1;
-        // cout << "mul" << mul << '\n';
 
         que.push(i);
         visited[i] = true;
@@ -307,7 +307,7 @@ void Cluster_LR_2D::Calculate(int _n, bool Random){
     }
 }
 
-void Cluster_LR_2D::WalkerTableGenerator(double eps){
+void Cluster_LR_2D::WalkerTableGenerator(double eps){ // 제대로 작동하고 있는 듯 (Test 완료)
     this->Walker_Table_P = vector<double>(N*(N-1)/2);
     this->Walker_Table_A = vector<int>(N*(N-1)/2,-1);
     vector<int> overfull;

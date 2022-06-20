@@ -82,6 +82,9 @@ int main(){
 
     for(int gg = 0; gg < 1; gg++){
         Model model = Model(args);
+        model.Initialize(model.BetaV[0]);
+        model.IterateUntilEquilibrium(equil_time);
+
         cout << model.J_tot << '\n';
 
         double MM, HH;
@@ -89,7 +92,89 @@ int main(){
         double kNi = 1/double(kN);
 
         cout << "blah" << '\n';
-        for(int i = 0; i < kBin; i++){
+        int N = kN;
+        int iter_k = 15;
+
+        vector<short> bond_list = vector<short>(kN*(N-1)/2,0); // hashset을 써야하나?
+        vector<set<int>> adj = vector<set<int>>(kN);
+        for(int it = 0; it < iter_k; it++){ // O(lambda)
+            // Walker's Alias Method
+            int l = ((kN*(kN-1))/2)*dis(gen);    
+            if(dis(gen) > model.Walker_Table_P[l])
+                l = model.Walker_Table_A[l];
+
+            int i = model.i_of_bond[l];
+            int j = l- (N*i - i*(i+1)/2 + (-i-1));
+            cout << i << " " << j << " ";
+            cout << model.sc[i] << " " << model.sc[j] << '\n';
+
+
+            if(model.sc[i]*model.sc[j] == 1){
+                adj[i].insert(j);
+                adj[j].insert(i);
+                // bond_list[l]++;
+            }
+            // cout << i << ' ' << j << '\n';
+        }
+
+        // cout << endl;
+
+        vector<bool> visited = vector<bool>(N,0); // 0 = false
+        queue<int> que;
+        for(int i = 0; i < N; i++){ //O(N+lambda) = O(N+E)
+            cout << "i is " << i << "\n";
+            if(visited[i] == true)
+                continue;
+            if(adj[i].empty()){
+                cout << "i is empty" << '\n';
+                visited[i] = true;
+                continue;
+            }
+
+            int mul = 2*(int)(dis(gen)*2) -1;
+
+            que.push(i);
+            visited[i] = true;
+            // BFS
+            while(!que.empty()){
+                int s = que.front();
+                que.pop();
+                
+                // cout << s << endl;
+
+                model.sc[s] *= mul; // Flip
+                cout << s << '\n';
+
+                auto itr = adj[s].begin();
+                while(itr != adj[s].end()){
+                    int n = *itr++;
+                    if(!visited[n]){
+                        visited[n] = true;
+                        que.push(n);
+                    }
+                }
+            }
+        }
+    }
+    Farewell();
+}
+
+/*
+int main(){
+    signal(SIGSEGV, &handler);
+    signal(SIGINT, &handler);
+    Greetings();
+
+    for(int gg = 0; gg < 1; gg++){
+        Model model = Model(args);
+        cout << model.J_tot << '\n';
+
+        double MM, HH;
+        double mcs_i = 1/double(mcs);
+        double kNi = 1/double(kN);
+
+        cout << "blah" << '\n';
+        for(int i = 0; i < 1; i++){
             model.Initialize(model.BetaV[i]);
             double t = 0;
 
@@ -115,7 +200,22 @@ int main(){
             }
             cout << '\n';
             }
+            vector<double> simulator = vector<double>(kN*(kN-1),0);
+            for(int kkk = 0; kkk < 1e8; kkk++){
+                int l = ((kN*(kN-1))/2)*dis(gen);
+                if(dis(gen) > model.Walker_Table_P[l])
+                    l = model.Walker_Table_A[l];
+                simulator[l]++;
+            }
+            for(int j = 0; j < kN; j++){
+            for(int k = j+1; k < kN; k++){
+                cout << kN*j - j*(j+1)/2 + (k-j-1) << '\n';
+                cout << simulator[kN*j - j*(j+1)/2 + (k-j-1)]/1e8 << '\n' << pow(model.e2d.dist_ij(j,k),-alpha)/model.J_tot << '\n';
+                cout << simulator[kN*j - j*(j+1)/2 + (k-j-1)]/1e8 - pow(model.e2d.dist_ij(j,k),-alpha)/model.J_tot << '\n';
+            }
+            cout << '\n';
+            }
         }
     }
     Farewell();
-}
+} */

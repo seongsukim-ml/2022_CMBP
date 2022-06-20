@@ -9,7 +9,7 @@ int kN          = kL*kL;
 int kBin        = 40;          /*Parameter: Change binning of temperature*/
 double kB       = 0;
 double kJ       = 1;
-double alpha    = 2+100;
+double alpha    = 3;
 double Tsrt = 0;
 double Tfin = 5;
 double isTinf = false;
@@ -20,14 +20,6 @@ int mcs = 1e5;
 /***************** Parameters 1 *****************/
 
 typedef Cluster_LR_2D Model;
-
-// Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
-#ifdef _WIN32
-static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
-#endif
-#ifdef linux
-static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
-#endif
 
 // clock used to measure time
 clock_t __start__, __finish__;
@@ -79,7 +71,14 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         equil_time_base = input[9]; mcs = input [10];        
     }
     // arguments list that helps to pass the args to model
-    vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};
+    vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};    
+    // Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
+    #ifdef _WIN32
+    static string kFilename = ".\\Result\\"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
+    #endif
+    #ifdef linux
+    static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kL)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
+    #endif
     Greetings();
 
     for(int gg = 0; gg < 1; gg++){
