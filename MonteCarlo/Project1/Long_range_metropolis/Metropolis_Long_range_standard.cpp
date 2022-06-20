@@ -3,31 +3,28 @@
 #include <iostream>
 #include <iomanip>
 
-/***************** Parameters 1 *****************/
-const int kL          = 8;          /*Parameter: lattice size*/
-const int kN          = kL*kL;
-const int kBin        = 20;          /*Parameter: Change binning of temperature*/
-const double kB       = 0;
-const double kJ       = 1;
-const double alpha    = 2+1;
-
+/***************** Base Parameters 1 *****************/
+double kL       = 8;          /*Parameter: lattice size*/
+double kN       = kL*kL;
+double kBin     = 20;          /*Parameter: Change binning of temperature*/
+double kB       = 0;
+double kJ       = 1;
+double alpha    = 2+1;
 
 // const double Tsrt = T_CRIT*(1-0.08);
 // const double Tfin = T_CRIT*(1+0.08);
 
-const double Tsrt = 7;
-const double Tfin = 8;
+double Tsrt = 7;
+double Tfin = 8;
 // const double Tsrt = 0;
 // const double Tfin = 8;
 
-
-const double isTinf = false;
-const bool Random = false;
-
-const int equil_time_base = 1e5;
+double isTinf = false;
+double Random = false;
+int equil_time_base = 1e5;
 int equil_time = equil_time_base;
 int mcs = 1e6;
-/***************** Parameters 1 *****************/
+/***************** Base Parameters 1 *****************/
 
 typedef Metropolis_LR_2D Model;
 
@@ -52,10 +49,9 @@ void Greetings(){
     cout << "--index--||---Temp----||EQ:sig------HH----------||magnetization---specific heat||Fliped Step------Total Step------" << "\n";
     cout << "------------------------------------------------------------------------------------------------------------------" << endl;
     cout << fixed <<setprecision(6);
-    
+
     // Show +/- sign
     cout << showpos;
-
 
     __start__ = clock();
 }
@@ -76,12 +72,19 @@ void handler(int A){
     exit(A);
 }
 
-// arguments list that helps to pass the args to model
-vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf};
-
-int main(){
+int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv[1]--> Input parameter
     signal(SIGSEGV, &handler);
     signal(SIGINT, &handler);
+    if(argn >= 2){
+        string Input_file = argv[1];
+        vector<double> input = Writer::Argument_reader(Input_file,11);
+        kL = (int)input[0]; kBin = (int)input[1]; kB = input[2]; kJ = input[3];
+        alpha = input[4]; Tsrt = input[5]; Tfin = input[6];
+        isTinf = input[7]; Random = input[8];
+        equil_time_base = input[9]; mcs = input [10];        
+    }
+    // arguments list that helps to pass the args to model
+    vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};
     Greetings();
 
     for(int gg = 0; gg < 1; gg++){
