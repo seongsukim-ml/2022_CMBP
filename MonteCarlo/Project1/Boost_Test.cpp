@@ -1,8 +1,10 @@
+/* File for test the boost library */
 #include <iostream>
 #include <boost/random.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 // #include "C:/Users/Seongsu/header/boost_1_78_0/boost/random.hpp"
- 
+// "-O3 -I/home/kss/include/boost_1_78_0 -L/home/kss/include/boost_1_78_0/stage/lib"
+
 int main()
 {
      boost::random::mt19937 dice;
