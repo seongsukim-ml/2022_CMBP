@@ -39,7 +39,25 @@ class Writer {
         void WriteLine(string contents);
         void WriteLine(double contents);
         void WriteLine(int contents);
-        void CloseNewFile();;
+        void CloseNewFile();
+        static vector<double> Argument_reader(string file_path,int size){
+            ifstream mf(file_path);
+            if(mf.fail()){
+                cerr << "Not correct file path" << endl;
+                exit(100);
+            }
+            vector<double> res;
+            for(int i = 0; i < size; i++){
+                string var_name, equal_sign;
+                mf >> var_name >> equal_sign; // Not use.
+                double data;
+                mf >> data;
+                res.push_back(data);
+                cout << res[i] << " " << '\n';
+            }
+            mf.close();
+            return res;
+        };
 };
 
 // Writer::Writer(string filename){
