@@ -78,7 +78,7 @@ class Metropolis_LR_2D{
             cout << "Model calculation finished. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
             cout << "------------------------------------------------------------------------------------------------------------------\n";
         }
-        double Prob(double delta);
+        long double Prob(double delta);
         void Initialize(double beta);
         // void Initialzie(int idx);
         int SweepHelical(int i);
@@ -118,8 +118,8 @@ Metropolis_LR_2D::Metropolis_LR_2D(int L, int bin, double B, double J, double al
 Metropolis_LR_2D::Metropolis_LR_2D(vector<double> args):
 Metropolis_LR_2D(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7]){}
 
-double Metropolis_LR_2D::Prob(double delta){
-    return exp(-this->cur_beta*delta);
+long double Metropolis_LR_2D::Prob(double delta){
+    return expl(-this->cur_beta*delta);
 }
 
 void Metropolis_LR_2D::Initialize(double beta){

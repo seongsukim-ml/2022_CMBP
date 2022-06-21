@@ -50,6 +50,13 @@ class ewald_ND{
         // 2D function
         double dist_2pt(double x1, double y1, double x2, double y2){return pow((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2),0.5);};
         double dist_ij(int i, int j){return dist_2pt(xof(i),yof(i),xof(j),yof(j));};
+        double dist_ij_min(int i, int j){
+            double diffx = min(abs(xof(i)-xof(j)),L[0]-abs(xof(i)-xof(j)));
+            // cout << diffx;
+            double diffy = min(abs(yof(i)-yof(j)),L[1]-abs(yof(i)-yof(j)));
+            // cout << diffy;
+            return pow(diffx*diffx + diffy*diffy,0.5);
+        };
         double vec_mul(double x1, double y1, double x2, double y2){return x1*x2 + y1* y2;};
         // int cache_point(int i, int j){return (N)*i-i*(i+1)/2+(j-i-1);};
         int cache_point(int i, int j){
@@ -239,18 +246,24 @@ double print_pi_ij(int lx, int ly, double alpha, int i, int j){
 }
 
 // int main(){
-//     int lx = 8, ly = 8, alpha = 20;
+//     int lx = 32, ly = 32, alpha = 3;
 //     ewald_ND e2d(2,vector<int>({lx,ly}),alpha);
-
-//     for(int j = 0; j < 1; j++){
-//         for(int i = 0; i < 64; i++){
-//             cout << e2d.pi_ij(i,j) << '\n';
+//     double J_tot = 0;
+//     cout << "lx = 32, ly = 32 , alpha = 2" << '\n';
+//     for(int j = 0; j < 32*32; j++){
+//         for(int i = 0; i < 32*32; i++){
+//             if(i == j) continue;
+//             cout << j << " " << i << " " << e2d.pi_ij(i,j) << '\n';
+//             J_tot += e2d.pi_ij(i,j);
+//             // cout << j << " " << i << " " << e2d.dist_ij_min(j,i) << '\n';
+//             // cout << e2d.xof(j) << " " << e2d.xof(i) << " " << '\n';
+//             // cout << e2d.yof(j) << " " << e2d.yof(i) << " " << '\n';
+//             // cout << j << " " << i << " " << pow(e2d.dist_ij_min(j,i),-alpha) << '\n';
+//             // J_tot += pow(e2d.dist_ij_min(j,i),-alpha);
 //         }
 //     }
-// }
-//     // for(int j = 0; j < 9; j++)
-//     // for(int i = j+1; i < 9; i++){
-//     //     cout << j << ' ' << i << '\n';
-//     //     print_pi_ij(3,3,5,j,i);
-//     // }
+//     // cout << j << " " << i << " " << pow(e2d.dist_ij(i,j),-alpha) << '\n';
+//     // int j = 0, i = 32;
+//     // cout << j << " " << i << " ";
+//     cout << J_tot << endl;
 // }
