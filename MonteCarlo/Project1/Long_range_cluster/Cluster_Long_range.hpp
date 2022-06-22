@@ -70,7 +70,7 @@ class Cluster_LR_2D{
         ewald_ND e2d;
         double J_tot;
         vector<int> i_of_bond;
-        vector<double> Walker_Table_P;
+        vector<long double> Walker_Table_P;
         vector<int> Walker_Table_A;
 
         vector<double> MV;
@@ -106,7 +106,7 @@ class Cluster_LR_2D{
         void Calculate(int _n = 0,bool Random = true);
         void IterateUntilEquilibrium(int equil_time,bool random = true);
 
-        double PoissonNumberGenerator(double lambdaTot);
+        int PoissonNumberGenerator(double lambdaTot);
         double JTot();
         void WalkerTableGenerator(double eps = 1e-10);
 };
@@ -150,10 +150,10 @@ double Cluster_LR_2D::Prob(double delta){
 
 // https://kr.mathworks.com/matlabcentral/answers/28161-poisson-random-number-generator
 // Mean이 lambdatot보다 1크게 나옴 -> -1 더해서 사용
-double Cluster_LR_2D::PoissonNumberGenerator(double lambdaTot){
+int Cluster_LR_2D::PoissonNumberGenerator(double lambdaTot){
     int k = 1;
-    double prod = dis(gen);
-    double exp_lambda = exp(-lambdaTot);
+    long double prod = dis(gen);
+    long double exp_lambda = expl(-lambdaTot);
     while(prod > exp_lambda){
         prod *= dis(gen);
         k += 1;
@@ -164,13 +164,14 @@ double Cluster_LR_2D::PoissonNumberGenerator(double lambdaTot){
 double Cluster_LR_2D::JTot(){ // Sum of J_ij where j > i
     double J_tot = 0;
     for(int i = 0;   i < N; i++)
-    for(int j = i+1; j < N; j++){
+    for(int j = i+1; j < N; j++){       
         i_of_bond[N*i - i*(i+1)/2 + (j-i-1)] = i;
         // cout << N*i - i*(i+1)/2 + (j-i-1) << '\n';
-        // J_tot += J*pow(e2d.dist_ij(i,j),-alpha);
-        J_tot += J*e2d.pi_ij(i,j);
+        // J_tot += pow(e2d.dist_ij(i,j),-alpha);
+        J_tot += e2d.pi_ij(i,j);
     }
-    return J_tot;
+    cout << J_tot << '\n';
+    return J_tot*J;
 }
 
 void Cluster_LR_2D::Initialize(double beta){
@@ -242,10 +243,10 @@ duo Cluster_LR_2D::Measure_fast(){
     // Measure_fast is not implemneted
     return Measure();
 }
-
 void Cluster_LR_2D::Calculate(int _n, bool Random){
     double lambda_tot = 2*cur_beta*J_tot;
-    int iter_k = PoissonNumberGenerator(lambda_tot-1);
+    // cout << lambda_tot << '\n';
+    int iter_k = PoissonNumberGenerator(lambda_tot);
     // cout << "iter_k " << iter_k << endl;
     vector<short> bond_list = vector<short>(N*(N-1)/2,0); // hashset을 써야하나?
     vector<set<int>> adj = vector<set<int>>(N);
@@ -309,7 +310,7 @@ void Cluster_LR_2D::Calculate(int _n, bool Random){
 }
 
 void Cluster_LR_2D::WalkerTableGenerator(double eps){ // 제대로 작동하고 있는 듯 (Test 완료)
-    this->Walker_Table_P = vector<double>(N*(N-1)/2);
+    this->Walker_Table_P = vector<long double>(N*(N-1)/2);
     this->Walker_Table_A = vector<int>(N*(N-1)/2,-1);
     vector<int> overfull;
     vector<int> underfull;
@@ -318,7 +319,7 @@ void Cluster_LR_2D::WalkerTableGenerator(double eps){ // 제대로 작동하고 
     for(int i = 0;   i < N; i++)
     for(int j = i+1; j < N; j++){
         // double prob = pow(e2d.dist_ij(i,j),-alpha)*N*(N-1)/2/J_tot;
-        double prob = J*e2d.pi_ij(i,j)*N*(N-1)/2/J_tot;
+        long double prob = J*e2d.pi_ij(i,j)*N*(N-1)/2/J_tot;
 
         int cur_point = N*i - i*(i+1)/2 + (j-i-1);
         // cout << cur_point << " " << prob << '\n';
@@ -338,8 +339,8 @@ void Cluster_LR_2D::WalkerTableGenerator(double eps){ // 제대로 작동하고 
 
     
     while(iter_over < overfull.size() && iter_under < underfull.size()){
-        double& P_over = Walker_Table_P[overfull[iter_over]];
-        double& P_under = Walker_Table_P[underfull[iter_under]];
+        long double& P_over = Walker_Table_P[overfull[iter_over]];
+        long double& P_under = Walker_Table_P[underfull[iter_under]];
         // Case 1: P(iter_over) = 1 + (del + alpha) & P(iter_under) = 1 - (del)
         // Case 2: P(iter_over) = 1 + (del) & P(iter_under) = 1 - (del)
         // Case 3: P(iter_over) = 1 + (del) & P(iter_under) = 1 - (del + alpha)

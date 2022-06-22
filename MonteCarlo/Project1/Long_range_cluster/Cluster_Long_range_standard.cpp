@@ -103,7 +103,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             equil_time = equil_time_base;
             // if(model.TV[i]<=2.4 || model.TV[i]>=2.0) equil_time =1000;
 
-            model.IterateUntilEquilibrium(equil_time);
+            // model.IterateUntilEquilibrium(equil_time);
 
             duo value = model.Measure();
             HH = get<0>(value);
@@ -111,6 +111,9 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
             cout <<"idx: " << left << setw(4) << i << "|| " << left << setw(10) << model.TV[i];
             cout << "|| "  << left << setw(9) << MM/(double)kN << "  " << left << setw(12) << HH << "|| ";
+            
+            model.IterateUntilEquilibrium(equil_time);
+
 
             /***********Monte Carlo Step and Caculate the data***********/
             for(int j = 0; j < mcs; j++){
