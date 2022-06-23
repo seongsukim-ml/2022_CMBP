@@ -1,17 +1,17 @@
-kL      = 16
+kL      = 96
 kBin    = 31
 kB      = 0
 kJ      = 1
-alpha   = 4
+alpha   = 3
 
-Tsrt = 3.5
-Tfin = 6
+Tsrt = 6.5
+Tfin = 9.5
 
 isTinf = 0
 Random = 0  
 
 equil_time_base = 1000  
-mcs = 100000
+mcs = 10000
 ***
 Horita pg.48
 
