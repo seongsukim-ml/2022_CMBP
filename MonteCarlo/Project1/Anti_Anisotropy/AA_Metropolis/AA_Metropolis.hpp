@@ -1,5 +1,5 @@
-#ifndef ____Anti_Anisotropy____
-#define ____Anti_Anisotropy____ 
+#ifndef ____AA_Metropolis____
+#define ____AA_Metropolis____ 
 
 // File & IO System
 #include <iostream>
@@ -11,11 +11,12 @@
 #include <tuple>
 // Mathmatics
 #include <math.h>
-#include <cmath>
 #include <random>
 // Etc.
 #include <stdlib.h>
 #include <ctime>
+// Ewald sum
+#include "../../Ewald_sum.cpp"
 
 using namespace std;
 
@@ -30,71 +31,66 @@ static uniform_real_distribution<> dis(0.0, 1.0);
 //In 2D Ising model => 2/log(1+sqrt(2))
 // const double T_CRIT = 2.269185;
 
-typedef tuple<int,int> duo;
+typedef tuple<double,int> duo;
 
-class Anti_Anisotropy_2D{
+class AA_Metropolis{
+
     public:
-        const int L;
+        const int Lx; // Short range (Time domain)
+        const int Ly; // Long range  (Spatial domain)
         const int N;
         const int Bin;
-        const int B;
+        const double B;
         const double Jx;
         const double Jy;
-        const double Alpha;
-
+        const double alpha; // dimension = 1
         bool isTinf;
+
+        double cur_beta;
 
         const int XNN = 1;
         const int YNN;
 
-        int HH;
+        double HH;
         int sigma;
         clock_t __start__, __finish__;
 
-
-        // #ifdef _WIN32
-        // static string Filename = ".\\Result\\Anti_Anisotorpy_c_"+to_string(L)+"_int"+to_string(bin);
-        // #endif
-        // #ifdef linux
-        // static string Filename = "./Result/Anti_Anisotorpy_c_"+to_string(L)+"_int"+to_string(bin);
-        // #endif
+        ewald_ND e2d;
 
         vector<double> MV;
         vector<double> CV;
         vector<double> TV;
         vector<double> BetaV;
         vector<double> res;
-        vector<double> Jij;
 
         short* sc; // Square lattice configuration of 2D Ising model
-        double prob[5];
+        // double prob[5];
 
         long Fliped_Step = 0;
         long Total_Step  = 0;
         long Calc_call = 0;
 
-        static string Name(){return "Anti_Anisotorpy";}
-        Anti_Anisotropy_2D(int L, int bin, int B, double Jx, double Jy, ,double alpha, double Tsrt, double Tfin, bool isTinf);
-        Anti_Anisotropy_2D(vector<double> args);
-        ~Anti_Anisotropy_2D(){
+        static string Name(){return "AA_Metropolis";}
+        AA_Metropolis(int Lx, int Ly, int bin, double B, double Jx, double Jy, double alpha, double Tsrt, double Tfin, bool isTinf);
+        AA_Metropolis(vector<double> args);
+        ~AA_Metropolis(){
+            // delete e2d;
             __finish__ = clock();
             cout << "------------------------------------------------------------------------------------------------------------------\n";
             cout << "Model calculation finished. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
             cout << "------------------------------------------------------------------------------------------------------------------\n";
         }
-        void ProbCalc(double beta);
+        long double Prob(double delta);
         void Initialize(double beta);
         // void Initialzie(int idx);
-        int SweepHelical(int i);
-        int BoundaryHelical(int i);
         duo Measure();
         duo Measure_fast();
         void Calculate(int _n = 0,bool Random = true);
         void IterateUntilEquilibrium(int equil_time,bool random = true);
 };
 
-Anti_Anisotropy_2D::Anti_Anisotropy_2D(int L, int bin, int B, double Jx, double Jy, ,double alpha, double Tsrt, double Tfin, bool isTinf)
-:L(L), N(L*L), Bin(bin), B(B), Jx(Jx), Jy(Jy), YNN(L), Alpha(alpha) {
+AA_Metropolis::AA_Metropolis(int Lx, int Ly, int bin, double B, double Jx, double Jy, double alpha, double Tsrt, double Tfin, bool isTinf)
+:Lx(Lx), Ly(Ly), N(Lx*Ly), Bin(bin), B(B), Jx(Jx), Jy(Jy), YNN(Lx), alpha(alpha) {
     this-> isTinf = isTinf;
     this-> sc = new short[N];
 
@@ -115,31 +111,18 @@ Anti_Anisotropy_2D::Anti_Anisotropy_2D(int L, int bin, int B, double Jx, double 
         }
         this->BetaV[i] = 1/TV[i];
     }
-
-    this-> Jij = vector<vector<double>>(N,vector<double>(N,0));
-    vector<double> site_cache(L,-1);
-    for(int i = 0; i < N; i++){
-        for(int j = 0; j < N; j++){
-            if(i == j) Jij[i][j] = 0;
-            else if(j/L == i/L){
-                if(site_cache[abs(j%L-i%L)] == -1)
-                    site_cac   he[abs(j%L-i%L)] = pow((abs(j%L-i%L)),-2-alpah);
-                Jij[i][j] = Jx/site_cache[abs(j%L-i%L)];
-            }
-            else Jij[i][j] = Jy;
-        }
-    }
+    // Ewald sum
+    e2d = ewald_ND(2,vector<int>({Lx,Ly}),alpha);
 }
 
-Anti_Anisotropy_2D::Anti_Anisotropy_2D(vector<double> args): Anti_Anisotropy_2D(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],args[9]){}
+AA_Metropolis::AA_Metropolis(vector<double> args):
+AA_Metropolis(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],args[9]){}
 
-void Anti_Anisotropy_2D::ProbCalc(double beta){
-    for(int i = 2; i < 5; i += 2){
-        this->prob[i] = exp(-2*beta*i);
-    }
+long double AA_Metropolis::Prob(double delta){
+    return expl(-this->cur_beta*delta);
 }
 
-void Anti_Anisotropy_2D::Initialize(double beta){
+void AA_Metropolis::Initialize(double beta){
     this-> Calc_call = 0;
     this-> Fliped_Step = 0;
     this-> Total_Step = 0;
@@ -151,64 +134,45 @@ void Anti_Anisotropy_2D::Initialize(double beta){
         // T = \inf start
         if(this->isTinf) this->sc[i] -= int(dis(gen)*2)*2;
     }
-    this->ProbCalc(beta);
+    // this->ProbCalc(beta);
+    cur_beta = beta;
 
     this->Measure();
 }
 
-int Anti_Anisotropy_2D::SweepHelical(int i){
-    int nn, sum = 0;
-    // int XNN = 1, YNN = L;
-
-    if((nn = i - XNN) < 0) nn += this->N;
-    sum += this->sc[nn];
-    if((nn = i + XNN) >= this->N) nn -= this->N;
-    sum += this->sc[nn];
-    if((nn = i - YNN) < 0) nn += this->N;
-    sum += this->sc[nn];
-    if((nn = i + YNN) >= this->N) nn -= this->N;
-    sum += this->sc[nn];
-
-    return sum;
-}
-
-int Anti_Anisotropy_2D::BoundaryHelical(int i){
-    int nn, sum = 0;
-    // int XNN = 1, YNN = L;
-    
-    if((nn = i + XNN) == N) nn = 0;
-    sum += this->sc[nn];
-    if((nn = i + YNN) >= N) nn -= N;
-    sum += this->sc[nn];
-
-    return sum;
-}
-
-duo Anti_Anisotropy_2D::Measure(){
-    int i, sum, HH;
-    int res = 0, sigma = 0;
+duo AA_Metropolis::Measure(){ //O(N^2)
+    int i, j;
+    int sigma = 0;
+    double HH, result = 0;
+    // cout << e2d.pi_ij(0,56) << '\n';
     for(i = 0; i < N; i++){
-        sum = this->BoundaryHelical(i);
-        res += J*sum*sc[i];
+        double temp = 0;
+        for(j = i+Lx; j < N; j+=Lx) // y 방향 long range 계산
+            temp += e2d.pi_ij_1D(i,j)*sc[j];
+        temp *= Jy;
+        if(i%Lx != Lx-1) // x 방향 short ragne 계산
+            temp += Jx*sc[i+1];
+        else
+            temp += Jx*sc[i+1-Lx];
         sigma += sc[i];
+        result += temp*sc[i];
     }
-    
-    HH = -res-B*sigma;
+    // result*= 0.5;   // 전체의 절반만 계산했음. 해밀토니안에 2를 안곱해도 계수 조정해서 찾을 수 있지 않을까?
+                    // i=0, j=i
+    HH = -result-B*sigma;
     this->HH = HH;
     this->sigma = sigma;
 
     return make_tuple(HH,sigma);
 }
 
-duo Anti_Anisotropy_2D::Measure_fast(){
+duo AA_Metropolis::Measure_fast(){
     return make_tuple(this->HH,this->sigma);
 }
 
-
-void Anti_Anisotropy_2D::Calculate(int _n, bool Random){
-    int i, k, delta, n;
+void AA_Metropolis::Calculate(int _n, bool Random){ //O(N^2)
+    int i, k, n;
     n = !_n ? (this->N) : _n;
-    double a;
     for(i = 0; i < n; i++){
         // Sweep Randomly
         if(Random){
@@ -216,28 +180,37 @@ void Anti_Anisotropy_2D::Calculate(int _n, bool Random){
         // Sweep Sequential
         } else if(n%2 == 0){
             k = 2*i;
-            if(k < N) k = (int(k/L))%2 == 0 ? k+1 : k;
-            else k = (int(k/L))%2 == 0 ? k-N : k-N+1;
+            if(k < N) k = (int(k/Lx))%2 == 0 ? k+1 : k;
+            else k = (int(k/Lx))%2 == 0 ? k-N : k-N+1;
         } else{
             k = 2*i >= N ? 2*i-N: 2*i;
         }
+
+        double delta = 0;
+        for(int jj = k%Lx; jj < N; jj+=Lx)  // Long range diff
+            delta += Jy*e2d.pi_ij(jj,k)*sc[jj];
+
+        int nn;                             // Short range diff
+        if(((nn = k - XNN)+1)%Lx == 0) nn += this->Lx; 
+        delta += Jx*sc[nn];
+        if(((nn = k + XNN)-1)%Lx == Lx-1) nn -= this->Lx;
+        delta += Jx*sc[nn];
         
-        delta = (this->SweepHelical(k))*(this->sc[k]);
-        
+        delta *= 2*sc[k];
         this->Total_Step++;
 
-        if((delta <= 0) || (dis(gen) < prob[delta])){
+        if((delta <= 0) || (dis(gen) < Prob(delta))){
             this->Fliped_Step++;
             this->sc[k] *= -1;
             this->sigma += 2*(this->sc[k]);
-            this->HH += 2*delta;
+            this->HH += delta;
         }
     }
 }
 
-void Anti_Anisotropy_2D::IterateUntilEquilibrium(int equil_time,bool random){
+void AA_Metropolis::IterateUntilEquilibrium(int equil_time,bool random){
     for(int j = 0; j < equil_time; j++)
         Calculate(0,random);
 }
 
-#endif // ____Anti_Anisotropy____ 
+#endif // ____AA_Metropolis____ 
