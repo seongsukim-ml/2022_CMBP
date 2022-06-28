@@ -150,16 +150,31 @@ double Cluster_LR_2D::Prob(double delta){
 
 // https://kr.mathworks.com/matlabcentral/answers/28161-poisson-random-number-generator
 // Mean이 lambdatot보다 1크게 나옴 -> -1 더해서 사용
+// int Cluster_LR_2D::PoissonNumberGenerator(double lambdaTot){
+//     int k = 1;
+//     long double prod = dis(gen);
+//     long double exp_lambda = expl(-lambdaTot);
+//     while(prod > exp_lambda){
+//         prod *= dis(gen);
+//         k += 1;
+//     }
+//     return k;
+// }
+// https://en.wikipedia.org/wiki/Poisson_distribution#Random_drawing_from_the_Poisson_distribution
+// 폐기처분 -> poisson_distribution<int> d(lambda 사용);
 int Cluster_LR_2D::PoissonNumberGenerator(double lambdaTot){
-    int k = 1;
+    int k = 0;
     long double prod = dis(gen);
-    long double exp_lambda = expl(-lambdaTot);
-    while(prod > exp_lambda){
-        prod *= dis(gen);
+    long double s = expl(-lambdaTot);
+    long double exp_lambda = -lambdaTot;
+    while(prod > s){
         k += 1;
+        exp_lambda += logl(lambdaTot/k);
+        s += expl(exp_lambda);
     }
     return k;
 }
+
 
 double Cluster_LR_2D::JTot(){ // Sum of J_ij where j > i
     double J_tot = 0;
@@ -246,7 +261,8 @@ duo Cluster_LR_2D::Measure_fast(){
 void Cluster_LR_2D::Calculate(int _n, bool Random){
     double lambda_tot = 2*cur_beta*J_tot;
     // cout << lambda_tot << '\n';
-    int iter_k = PoissonNumberGenerator(lambda_tot);
+    poisson_distribution<int> PNG(lambda_tot);
+    int iter_k = PNG(lambda_tot);
     // cout << "iter_k " << iter_k << endl;
     vector<short> bond_list = vector<short>(N*(N-1)/2,0); // hashset을 써야하나?
     vector<set<int>> adj = vector<set<int>>(N);

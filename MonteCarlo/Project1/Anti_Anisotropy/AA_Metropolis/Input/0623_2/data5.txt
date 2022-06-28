@@ -1,18 +1,18 @@
-kLx         = 16          
-kLy         = 16
+kLx         = 64          
+kLy         = 64
 
 kBin        = 40
 
 kB       = 0
 kJx      = 1
-kJy      = 1
-alpha    = 3
+kJy      = -1
+alpha    = 1
 
 Tsrt = 0
-Tfin = 10
+Tfin = 15
 
 isTinf = 0
 Random = 0
 
 equil_time_base = 10000
-mcs = 1000000
+mcs = 500000

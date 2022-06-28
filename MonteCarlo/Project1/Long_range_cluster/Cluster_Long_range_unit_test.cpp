@@ -74,7 +74,6 @@ void handler(int A){
 
 // arguments list that helps to pass the args to model
 vector<double> args = {kL,kBin,kB,kJ,alpha,Tsrt,Tfin,isTinf};
-
 int main(){
     signal(SIGSEGV, &handler);
     signal(SIGINT, &handler);
@@ -83,7 +82,7 @@ int main(){
     for(int gg = 0; gg < 1; gg++){
         Model model = Model(args);
         model.Initialize(model.BetaV[0]);
-        model.IterateUntilEquilibrium(equil_time);
+        // model.IterateUntilEquilibrium(equil_time);
 
         cout << model.J_tot << '\n';
 
@@ -91,73 +90,107 @@ int main(){
         double mcs_i = 1/double(mcs);
         double kNi = 1/double(kN);
 
-        cout << "blah" << '\n';
-        int N = kN;
-        int iter_k = 15;
-
-        vector<short> bond_list = vector<short>(kN*(N-1)/2,0); // hashset을 써야하나?
-        vector<set<int>> adj = vector<set<int>>(kN);
-        for(int it = 0; it < iter_k; it++){ // O(lambda)
-            // Walker's Alias Method
-            int l = ((kN*(kN-1))/2)*dis(gen);    
-            if(dis(gen) > model.Walker_Table_P[l])
-                l = model.Walker_Table_A[l];
-
-            int i = model.i_of_bond[l];
-            int j = l- (N*i - i*(i+1)/2 + (-i-1));
-            cout << i << " " << j << " ";
-            cout << model.sc[i] << " " << model.sc[j] << '\n';
-
-
-            if(model.sc[i]*model.sc[j] == 1){
-                adj[i].insert(j);
-                adj[j].insert(i);
-                // bond_list[l]++;
-            }
-            // cout << i << ' ' << j << '\n';
+        // cout << "blah" << '\n';
+        
+        int a = 0;
+        double cnt = 10;
+        poisson_distribution<int> d(40000);
+        static mt19937 gen(123124); // Standard mersenne_twister_engine seeded with time()
+        static uniform_real_distribution<> dis(0.0, 1.0);
+        for(int i = 0; i < cnt; i++){
+            int temp = d(gen);
+            // int temp = model.PoissonNumberGenerator(40000);
+            cout << temp << endl;
+            a += temp;        
         }
-
-        // cout << endl;
-
-        vector<bool> visited = vector<bool>(N,0); // 0 = false
-        queue<int> que;
-        for(int i = 0; i < N; i++){ //O(N+lambda) = O(N+E)
-            cout << "i is " << i << "\n";
-            if(visited[i] == true)
-                continue;
-            if(adj[i].empty()){
-                cout << "i is empty" << '\n';
-                visited[i] = true;
-                continue;
-            }
-
-            int mul = 2*(int)(dis(gen)*2) -1;
-
-            que.push(i);
-            visited[i] = true;
-            // BFS
-            while(!que.empty()){
-                int s = que.front();
-                que.pop();
-                
-                // cout << s << endl;
-
-                model.sc[s] *= mul; // Flip
-                cout << s << '\n';
-
-                auto itr = adj[s].begin();
-                while(itr != adj[s].end()){
-                    int n = *itr++;
-                    if(!visited[n]){
-                        visited[n] = true;
-                        que.push(n);
-                    }
-                }
-            }
-        }
+        cout << a/cnt << '\n';
     }
     Farewell();
 }
+
+// int main(){
+//     signal(SIGSEGV, &handler);
+//     signal(SIGINT, &handler);
+//     Greetings();
+
+//     for(int gg = 0; gg < 1; gg++){
+//         Model model = Model(args);
+//         model.Initialize(model.BetaV[0]);
+//         model.IterateUntilEquilibrium(equil_time);
+
+//         cout << model.J_tot << '\n';
+
+//         double MM, HH;
+//         double mcs_i = 1/double(mcs);
+//         double kNi = 1/double(kN);
+
+//         cout << "blah" << '\n';
+//         int N = kN;
+//         int iter_k = 15;
+
+//         vector<short> bond_list = vector<short>(kN*(N-1)/2,0); // hashset을 써야하나?
+//         vector<set<int>> adj = vector<set<int>>(kN);
+//         for(int it = 0; it < iter_k; it++){ // O(lambda)
+//             // Walker's Alias Method
+//             int l = ((kN*(kN-1))/2)*dis(gen);    
+//             if(dis(gen) > model.Walker_Table_P[l])
+//                 l = model.Walker_Table_A[l];
+
+//             int i = model.i_of_bond[l];
+//             int j = l- (N*i - i*(i+1)/2 + (-i-1));
+//             cout << i << " " << j << " ";
+//             cout << model.sc[i] << " " << model.sc[j] << '\n';
+
+
+//             if(model.sc[i]*model.sc[j] == 1){
+//                 adj[i].insert(j);
+//                 adj[j].insert(i);
+//                 // bond_list[l]++;
+//             }
+//             // cout << i << ' ' << j << '\n';
+//         }
+
+//         // cout << endl;
+
+//         vector<bool> visited = vector<bool>(N,0); // 0 = false
+//         queue<int> que;
+//         for(int i = 0; i < N; i++){ //O(N+lambda) = O(N+E)
+//             cout << "i is " << i << "\n";
+//             if(visited[i] == true)
+//                 continue;
+//             if(adj[i].empty()){
+//                 cout << "i is empty" << '\n';
+//                 visited[i] = true;
+//                 continue;
+//             }
+
+//             int mul = 2*(int)(dis(gen)*2) -1;
+
+//             que.push(i);
+//             visited[i] = true;
+//             // BFS
+//             while(!que.empty()){
+//                 int s = que.front();
+//                 que.pop();
+                
+//                 // cout << s << endl;
+
+//                 model.sc[s] *= mul; // Flip
+//                 cout << s << '\n';
+
+//                 auto itr = adj[s].begin();
+//                 while(itr != adj[s].end()){
+//                     int n = *itr++;
+//                     if(!visited[n]){
+//                         visited[n] = true;
+//                         que.push(n);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     Farewell();
+// }
 
 // int main(){
 //     signal(SIGSEGV, &handler);

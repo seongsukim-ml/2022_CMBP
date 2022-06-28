@@ -5,11 +5,11 @@ kBin        = 40
 
 kB       = 0
 kJx      = 1
-kJy      = 1
-alpha    = 3
+kJy      = -1
+alpha    = 2
 
 Tsrt = 0
-Tfin = 10
+Tfin = 15
 
 isTinf = 0
 Random = 0

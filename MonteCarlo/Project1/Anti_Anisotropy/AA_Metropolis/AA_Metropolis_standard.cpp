@@ -72,7 +72,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     signal(SIGINT, &handler);
     if(argn >= 2){
         string Input_file = argv[1];
-        vector<double> input = Writer::Argument_reader(Input_file,11);
+        vector<double> input = Writer::Argument_reader(Input_file,13);
         kLx = (int)input[0]; kLy = (int)input[1]; kN = kLx*kLy;
         kBin = (int)input[2]; kB = input[3]; kJx = input[4]; kJy = input[5];
         alpha = input[6]; Tsrt = input[7]; Tfin = input[8];
