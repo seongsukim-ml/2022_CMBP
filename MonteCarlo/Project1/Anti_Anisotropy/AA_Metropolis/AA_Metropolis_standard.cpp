@@ -3,9 +3,9 @@
 #include <iostream>
 #include <iomanip>
 
-/***************** Parameters 1 *****************/
-int kLx         = 6;          /*Parameter: lattice size*/
-int kLy         = 6;          
+/***************** (Test) Parameters 1 *****************/
+int kLx         = 24;          /*Parameter: lattice size*/
+int kLy         = 24;          
 
 int kN          = kLx*kLy;
 int kBin        = 40;          /*Parameter: Change binning of temperature*/
@@ -13,10 +13,10 @@ int kBin        = 40;          /*Parameter: Change binning of temperature*/
 double kB       = 0;
 double kJx      = 1;
 double kJy      = -1;
-double alpha    = 1;
+double alpha    = 3;
 
-double Tsrt = 0;
-double Tfin = 5;
+double Tsrt = 1.5;
+double Tfin = 4;
 
 double isTinf = false;
 bool Random = false;
@@ -24,7 +24,7 @@ bool Random = false;
 int equil_time_base = 1e4;
 int equil_time = equil_time_base;
 int mcs = 1e5;
-/***************** Parameters 1 *****************/
+/***************** (Test) Parameters 1 *****************/
 
 typedef AA_Metropolis Model;
 
@@ -124,7 +124,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             //     cout << model.sc[i];
             //     if(i%kLx == kLx-1) cout << '/';
             // }
-            // cout << '\n';
+            cout << '\n';
 
 
             /***********Monte Carlo Step and Caculate the data***********/

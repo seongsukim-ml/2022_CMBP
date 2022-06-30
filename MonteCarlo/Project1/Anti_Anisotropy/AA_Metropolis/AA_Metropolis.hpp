@@ -68,8 +68,8 @@ class AA_Metropolis{
         // double prob[5];
         bool* sign;
 
-        long Fliped_Step = 0;
-        long Total_Step  = 0;
+        unsigned long long Fliped_Step = 0;
+        unsigned long long Total_Step  = 0;
         long Calc_call = 0;
 
         static string Name(){return "AA_Metropolis";}

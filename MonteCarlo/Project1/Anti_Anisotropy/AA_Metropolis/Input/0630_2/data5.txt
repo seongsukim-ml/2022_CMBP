@@ -1,7 +1,7 @@
 kLx         = 96          
 kLy         = 96
 
-kBin        = 50
+kBin        = 51
 
 kB       = 0
 kJx      = 1
