@@ -53,6 +53,7 @@ class AA_Metropolis{
 
         double HH;
         int sigma;
+        int staggered;
         clock_t __start__, __finish__;
 
         ewald_ND e2d;
@@ -65,6 +66,7 @@ class AA_Metropolis{
 
         short* sc; // Square lattice configuration of 2D Ising model
         // double prob[5];
+        bool* sign;
 
         long Fliped_Step = 0;
         long Total_Step  = 0;
@@ -83,8 +85,8 @@ class AA_Metropolis{
         long double Prob(double delta);
         void Initialize(double beta);
         // void Initialzie(int idx);
-        duo Measure();
-        duo Measure_fast();
+        void Measure();
+        void Measure_fast();
         void Calculate(int _n = 0,bool Random = true);
         void IterateUntilEquilibrium(int equil_time,bool random = true);
 };
@@ -93,6 +95,21 @@ AA_Metropolis::AA_Metropolis(int Lx, int Ly, int bin, double B, double Jx, doubl
 :Lx(Lx), Ly(Ly), N(Lx*Ly), Bin(bin), B(B), Jx(Jx), Jy(Jy), YNN(Lx), alpha(alpha) {
     this-> isTinf = isTinf;
     this-> sc = new short[N];
+    this-> sign = new bool[N];
+    // Checkboard style
+    // if(Lx%2 == 1)
+    //     for(int i = 0; i < N; i++)
+    //         sign[i] = i%2;
+    // else
+    //     for(int i = 0; i < N; i++)
+    //         sign[i] = (i+(i/Lx))%2;
+    // for(int i = 0; i < N; i++){
+    //     cout << -sign[i]*2+1;
+    // }
+    for(int i = 0; i < N; i++)
+        sign[i] = (i/Lx)%2;
+    
+    
 
     this-> MV = vector<double>(Bin);
     this-> CV = vector<double>(Bin);
@@ -140,9 +157,10 @@ void AA_Metropolis::Initialize(double beta){
     this->Measure();
 }
 
-duo AA_Metropolis::Measure(){ //O(N^2)
+void AA_Metropolis::Measure(){ //O(N^2)
     int i, j;
     int sigma = 0;
+    int staggered = 0;
     double HH, result = 0;
     // cout << e2d.pi_ij(0,56) << '\n';
     for(i = 0; i < N; i++){
@@ -155,6 +173,7 @@ duo AA_Metropolis::Measure(){ //O(N^2)
         else
             temp += Jx*sc[i+1-Lx];
         sigma += sc[i];
+        staggered += sc[i]*(-sign[i]*2+1);
         result += temp*sc[i];
     }
     // result*= 0.5;   // 전체의 절반만 계산했음. 해밀토니안에 2를 안곱해도 계수 조정해서 찾을 수 있지 않을까?
@@ -162,12 +181,13 @@ duo AA_Metropolis::Measure(){ //O(N^2)
     HH = -result-B*sigma;
     this->HH = HH;
     this->sigma = sigma;
-
-    return make_tuple(HH,sigma);
+    this->staggered = staggered;
 }
 
-duo AA_Metropolis::Measure_fast(){
-    return make_tuple(this->HH,this->sigma);
+void AA_Metropolis::Measure_fast(){
+    // double res[] = {HH,sigma,staggered};
+    // return vector<double>(res,res +sizeof(res)/sizeof(res[0]));
+    return; // do nothing
 }
 
 void AA_Metropolis::Calculate(int _n, bool Random){ //O(N^2)
@@ -203,6 +223,7 @@ void AA_Metropolis::Calculate(int _n, bool Random){ //O(N^2)
             this->Fliped_Step++;
             this->sc[k] *= -1;
             this->sigma += 2*(this->sc[k]);
+            this->staggered +=2*(this->sc[k]*(-sign[k]*2+1));
             this->HH += delta;
         }
     }

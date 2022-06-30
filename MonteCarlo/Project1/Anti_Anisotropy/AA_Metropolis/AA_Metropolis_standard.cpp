@@ -4,16 +4,16 @@
 #include <iomanip>
 
 /***************** Parameters 1 *****************/
-int kLx         = 5;          /*Parameter: lattice size*/
-int kLy         = 5;          
+int kLx         = 6;          /*Parameter: lattice size*/
+int kLy         = 6;          
 
 int kN          = kLx*kLy;
 int kBin        = 40;          /*Parameter: Change binning of temperature*/
 
 double kB       = 0;
 double kJx      = 1;
-double kJy      = 1;
-double alpha    = 100;
+double kJy      = -1;
+double alpha    = 1;
 
 double Tsrt = 0;
 double Tfin = 5;
@@ -21,9 +21,9 @@ double Tfin = 5;
 double isTinf = false;
 bool Random = false;
 
-int equil_time_base = 1e5;
+int equil_time_base = 1e4;
 int equil_time = equil_time_base;
-int mcs = 1e6;
+int mcs = 1e5;
 /***************** Parameters 1 *****************/
 
 typedef AA_Metropolis Model;
@@ -113,20 +113,27 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
             model.IterateUntilEquilibrium(equil_time);
 
-            duo value = model.Measure();
-            HH = get<0>(value);
-            MM = get<1>(value);
+            model.Measure_fast();
+            HH = model.HH;
+            MM = model.staggered;
 
             cout <<"idx: " << left << setw(4) << i << "|| " << left << setw(10) << model.TV[i];
-            cout << "|| "  << left << setw(9) << MM/(double)kN << "  " << left << setw(12) << HH << "|| ";
+            cout << "|| "  << left << setw(9) << MM/(double)kN << "  " << left << setw(12) << HH;
+            cout << "|| "  << left << setw(9) << model.sigma/(double)kN << "|| ";
+            // for(int i = 0; i < kN; i++){
+            //     cout << model.sc[i];
+            //     if(i%kLx == kLx-1) cout << '/';
+            // }
+            // cout << '\n';
+
 
             /***********Monte Carlo Step and Caculate the data***********/
             for(int j = 0; j < mcs; j++){
                 model.Calculate();                     //O(N^2)
 
-                value = model.Measure_fast();
-                HH = get<0>(value)/(double) kNir;        // = E
-                MM = abs(get<1>(value))/(double)kN;    // = |M|
+                model.Measure_fast();
+                HH = model.HH/(double) kNir;        // = E
+                MM = abs(model.staggered)/(double)kN;    // = |M|
 
                 model.res[0] += MM*mcs_i;              // = <m>
                 model.res[1] += (MM*mcs_i*MM);         // = <m^2>
@@ -140,8 +147,9 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             model.MV[i] = model.res[0];
             model.CV[i] = (model.BetaV[i]*model.BetaV[i])*(model.res[4]-model.res[3]*model.res[3]);
             /***********************************************************/
-
-            cout << left << setw(13) << model.MV[i] << "  " << right << setw(13) << model.CV[i] << "|| ";
+            
+            cout <<"                         ";
+            cout << left << setw(8) << model.MV[i] << "  " << left << setw(12) << model.CV[i] << "|| ";
             cout << left << setw(14) << model.Fliped_Step << "  " << left << setw(10) << model.Total_Step << endl;
 
             string result = to_string(i) + "," + to_string(model.TV[i]) + "," + to_string(model.MV[i]) + "," + to_string(model.CV[i]) + ",";
@@ -153,7 +161,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
         /***********Save the result of the Calculation**********/
         Writer modelW = Writer(kFilename+"_Test_");
-        modelW.WriteLine("idx,temperture,magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L\n");
+        modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L\n");
         for(int i = 0; i < kBin; i++)
             modelW.WriteLine(result_to_file.at(i));
         modelW.CloseNewFile();
@@ -161,7 +169,3 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     }
     Farewell();
 }
-
-// Memo
-// 3.27 : at kL=64, alpha = 3, equil = 20, mcs = 100
-// phase transition of magnetization occurs near 7.2 to 8.4
