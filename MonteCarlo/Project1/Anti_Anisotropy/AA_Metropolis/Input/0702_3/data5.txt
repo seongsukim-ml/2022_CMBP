@@ -15,4 +15,4 @@ isTinf = 0
 Random = 0
 
 equil_time_base = 100000
-mcs = 1000000
+mcs = 2000000
