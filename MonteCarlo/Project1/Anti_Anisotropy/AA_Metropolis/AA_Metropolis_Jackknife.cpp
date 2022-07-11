@@ -23,7 +23,7 @@ bool Random = false;
 
 int equil_time_base = 1e4;
 int equil_time = equil_time_base;
-int mcs = 1e5;
+int mcs = 1e4;
 /***************** (Test) Parameters 1 *****************/
 
 typedef AA_Metropolis Model;
@@ -171,8 +171,9 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
                 Jackknife_1[j] = (model.BetaV[i]*model.BetaV[i])*((mcs*model.res[4]-Jackknife_HH2[j])/(mcs-jB) \
                             - (mcs*model.res[3]-Jackknife_HH[j])/(mcs-jB)*(mcs*model.res[3]-Jackknife_HH[j])/(mcs-jB));
                 c_error += (Jackknife_1[j]-model.CV[i])*(Jackknife_1[j]-model.CV[i]);
-                double temp = (mcs*model.res[1]-Jackknife_MM2[j])/(mcs-jB);
-                Jackknife_2[j] = 0.5*(3-(mcs*model.res[2]-Jackknife_MM4[j]/(mcs-jB)/temp/temp));
+                double MM2_dif = (mcs*model.res[1]-Jackknife_MM2[j])/(mcs-jB);
+                double MM4_dif = (mcs*model.res[2]-Jackknife_MM4[j])/(mcs-jB);
+                Jackknife_2[j] = 0.5*(3-(MM4_dif/MM2_dif/MM2_dif));
                 b_error += (Jackknife_2[j]-Binder[i])*(Jackknife_2[j]-Binder[i]);
             }
             c_error = sqrt(c_error);
