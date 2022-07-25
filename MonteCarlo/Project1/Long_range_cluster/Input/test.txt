@@ -1,14 +1,14 @@
-kL      = 10
-kBin    = 30
+kL      = 24
+kBin    = 25
 kB      = 0
 kJ      = 1
-alpha   = 4
+alpha   = 100
 
-Tsrt = 6
-Tfin = 9
+Tsrt = 2.2
+Tfin = 2.35
 
 isTinf = 0
 Random = 0
 
 equil_time_base = 100
-mcs = 1000
+mcs = 10000

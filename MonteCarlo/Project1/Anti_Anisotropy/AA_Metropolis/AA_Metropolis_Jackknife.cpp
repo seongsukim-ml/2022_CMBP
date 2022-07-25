@@ -128,7 +128,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             // }
             cout << '\n';
 
-            int jB = 100; // Jackknife blcok
+            int jB = 1000; // Jackknife blcok
             vector<double> Jackknife_1 = vector<double>(mcs/jB,0);
             vector<double> Jackknife_HH = vector<double>(mcs/jB,0);
             vector<double> Jackknife_HH2 = vector<double>(mcs/jB,0);
@@ -176,8 +176,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
                 Jackknife_2[j] = 0.5*(3-(MM4_dif/MM2_dif/MM2_dif));
                 b_error += (Jackknife_2[j]-Binder[i])*(Jackknife_2[j]-Binder[i]);
             }
-            c_error = sqrt(c_error);
-            b_error = sqrt(b_error);
+            c_error = sqrt(c_error/(mcs/jB));
+            b_error = sqrt(b_error/(mcs/jB));
             /***********************************************************/
 
 

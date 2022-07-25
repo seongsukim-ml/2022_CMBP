@@ -1,4 +1,4 @@
-#include "AA_Metropolis.hpp"
+#include "AA_SwendsenWang.hpp"
 #include "../../../headers/Writer.hpp"
 #include <iostream>
 #include <iomanip>
@@ -26,7 +26,7 @@ int equil_time = equil_time_base;
 int mcs = 1e4;
 /***************** (Test) Parameters 1 *****************/
 
-typedef AA_Metropolis Model;
+typedef AA_SwendsenWang Model;
 
 // clock used to measure time
 clock_t __start__, __finish__;
@@ -101,6 +101,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         double kNir = pow(kN,0.5);
         cout << kNir << '\n';
 
+        vector<double> Binder = vector<double>(kBin,0);
+
         for(int i = 0; i < kBin; i++){
             model.Initialize(model.BetaV[i]);
 
@@ -113,7 +115,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
             model.IterateUntilEquilibrium(equil_time);
 
-            model.Measure_fast();
+            model.Measure();
             HH = model.HH;
             MM = model.staggered;
 
@@ -126,12 +128,22 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             // }
             cout << '\n';
 
+            int jB = 1000; // Jackknife blcok
+            vector<double> Jackknife_1 = vector<double>(mcs/jB,0);
+            vector<double> Jackknife_HH = vector<double>(mcs/jB,0);
+            vector<double> Jackknife_HH2 = vector<double>(mcs/jB,0);
+            vector<double> Jackknife_2 = vector<double>(mcs/jB,0);
+            vector<double> Jackknife_MM2 = vector<double>(mcs/jB,0);
+            vector<double> Jackknife_MM4 = vector<double>(mcs/jB,0);
+            double c_error = 0;
+            double b_error = 0;
+
 
             /***********Monte Carlo Step and Caculate the data***********/
             for(int j = 0; j < mcs; j++){
                 model.Calculate();                     //O(N^2)
 
-                model.Measure_fast();
+                model.Measure();
                 HH = model.HH/(double) kNir;        // = E
                 MM = abs(model.staggered)/(double)kN;    // = |M|
 
@@ -140,28 +152,50 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
                 model.res[2] += (MM*mcs_i*MM)*(MM*MM); // = <m^4>
                 model.res[3] += HH*mcs_i;              // = <E>/sqrt(N)
                 model.res[4] += HH*mcs_i*HH;           // = <E^2>/N
+
+                Jackknife_HH[j/jB] += HH;
+                Jackknife_HH2[j/jB] += HH*HH;
+                Jackknife_MM2[j/jB] += MM*MM;
+                Jackknife_MM4[j/jB] += MM*MM*MM*MM;
             }
             /***********************************************************/
 
             /*******Calculate Magnetizaition and Specific Heat.*********/
             model.MV[i] = model.res[0];
             model.CV[i] = (model.BetaV[i]*model.BetaV[i])*(model.res[4]-model.res[3]*model.res[3]);
+            Binder[i] = 0.5*(3-model.res[2]/model.res[1]/model.res[1]);
             /***********************************************************/
             
+            /*******Calculate Magnetizaition and Specific Heat Error.*********/
+            for(int j = 0; j < mcs/jB; j++){
+                Jackknife_1[j] = (model.BetaV[i]*model.BetaV[i])*((mcs*model.res[4]-Jackknife_HH2[j])/(mcs-jB) \
+                            - (mcs*model.res[3]-Jackknife_HH[j])/(mcs-jB)*(mcs*model.res[3]-Jackknife_HH[j])/(mcs-jB));
+                c_error += (Jackknife_1[j]-model.CV[i])*(Jackknife_1[j]-model.CV[i]);
+                double MM2_dif = (mcs*model.res[1]-Jackknife_MM2[j])/(mcs-jB);
+                double MM4_dif = (mcs*model.res[2]-Jackknife_MM4[j])/(mcs-jB);
+                Jackknife_2[j] = 0.5*(3-(MM4_dif/MM2_dif/MM2_dif));
+                b_error += (Jackknife_2[j]-Binder[i])*(Jackknife_2[j]-Binder[i]);
+            }
+            c_error = sqrt(c_error/(mcs/jB));
+            b_error = sqrt(b_error/(mcs/jB));
+            /***********************************************************/
+
+
             cout <<"                         ";
             cout << left << setw(8) << model.MV[i] << "  " << left << setw(12) << model.CV[i] << "|| ";
             cout << left << setw(14) << model.Fliped_Step << "  " << left << setw(10) << model.Total_Step << endl;
 
             string result = to_string(i) + "," + to_string(model.TV[i]) + "," + to_string(model.MV[i]) + "," + to_string(model.CV[i]) + ",";
             result = result + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
-            result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + "\n";
+            result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + ",";
+            result = result + to_string(c_error) +  "," + to_string(b_error) + "\n";
 
             result_to_file.push_back(result);
         }
 
         /***********Save the result of the Calculation**********/
-        Writer modelW = Writer(kFilename+"_Test_");
-        modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L\n");
+        Writer modelW = Writer(kFilename+"_Jackknife_");
+        modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L,cerror,berror\n");
         for(int i = 0; i < kBin; i++)
             modelW.WriteLine(result_to_file.at(i));
         modelW.CloseNewFile();

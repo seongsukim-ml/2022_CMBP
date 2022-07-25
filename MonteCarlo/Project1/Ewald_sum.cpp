@@ -248,7 +248,7 @@ double ewald_ND::periodic_sum_comparison_1D(int i, int j, int idx){
 
 // (1) Ewald sum number comparison generator
 // int main(){
-//     int lat = 16;
+//     int lat = 100;
 //     ewald_ND e2d(2,vector<int>({lat,lat}),3);
 //     double kappa = 2/(double)lat;
 //     // cout << e2d.kappa << '\n';
@@ -256,8 +256,9 @@ double ewald_ND::periodic_sum_comparison_1D(int i, int j, int idx){
 //     for(int i = lat; i < lat*lat; i+=lat){
 //         double t1 = e2d.pi_1_1D(0,i,kappa);
 //         double t2 = e2d.pi_2_1D(0,i,kappa);
-//         // cout << i << ' ' << e2d.cache_point_2D(0,i) << '\n'; 
-//         cout << i << ' ' << e2d.periodic_sum_comparison_1D(0,i,30) << ' ' << t1 << " " << t2 << ' ' << e2d.pi_ij_1D(0,i) << ' ' << ((e2d.pi_ij_1D(0,i) - t1-t2) < 1e-20) << '\n';
+//         // cout << i << ' ' << e2d.cache_point_2D(0,i) << '\n';
+//         cout << i << ' ' << e2d.pi_ij(0,i) << " " << e2d.pi_ij_1D(0,i) << '\n';
+//         // cout << i << ' ' << e2d.periodic_sum_comparison_1D(0,i,30) << ' ' << t1 << " " << t2 << ' ' << e2d.pi_ij_1D(0,i) << ' ' << ((e2d.pi_ij_1D(0,i) - t1-t2) < 1e-20) << '\n';
 //         // cout << i << ' ' << e2d.periodic_sum_comparison_1D(0,i,30) << ' ' << t1 << " " << t2 << ' ' << '\n';
 //         // if(!((e2d.pi_ij_1D(0,i) - t1-t2)< 1e-19)) cnt++;
 //     }

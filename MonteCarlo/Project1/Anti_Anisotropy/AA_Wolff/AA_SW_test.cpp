@@ -1,32 +1,32 @@
-#include "AA_Metropolis.hpp"
+#include "AA_SwendsenWang.hpp"
 #include "../../../headers/Writer.hpp"
 #include <iostream>
 #include <iomanip>
 
 /***************** (Test) Parameters 1 *****************/
-int kLx         = 16;          /*Parameter: lattice size*/
-int kLy         = 16;          
+int kLx         = 24;          /*Parameter: lattice size*/
+int kLy         = 24;          
 
 int kN          = kLx*kLy;
-int kBin        = 31;          /*Parameter: Change binning of temperature*/
+int kBin        = 25;          /*Parameter: Change binning of temperature*/
 
 double kB       = 0;
 double kJx      = 1;
 double kJy      = -1;
 double alpha    = 100;
 
-double Tsrt = 2.22;
-double Tfin = 2.28;
+double Tsrt = 2.20;
+double Tfin = 2.35;
 
 double isTinf = false;
 bool Random = false;
 
-int equil_time_base = 1e3;
+int equil_time_base = 1000;
 int equil_time = equil_time_base;
-int mcs = 1e4;
+int mcs = 100000;
 /***************** (Test) Parameters 1 *****************/
 
-typedef AA_Metropolis Model;
+typedef AA_SwendsenWang Model;
 
 // clock used to measure time
 clock_t __start__, __finish__;
@@ -99,7 +99,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         double mcs_i = 1/double(mcs);
         double kNi  = 1/double(kN);
         double kNir = pow(kN,0.5);
-        cout << kNir << '\n';
+        // cout << kNir << '\n';
 
         for(int i = 0; i < kBin; i++){
             model.Initialize(model.BetaV[i]);
@@ -113,17 +113,14 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
             model.IterateUntilEquilibrium(equil_time);
 
-            model.Measure_fast();
+            model.Measure();
             HH = model.HH;
-            MM = model.staggered;
+            // MM = model.staggered;
+            MM = model.sigma;
 
             cout <<"idx: " << left << setw(4) << i << "|| " << left << setw(10) << model.TV[i];
             cout << "|| "  << left << setw(9) << MM/(double)kN << "  " << left << setw(12) << HH;
             cout << "|| "  << left << setw(9) << model.sigma/(double)kN << "|| ";
-            // for(int i = 0; i < kN; i++){
-            //     cout << model.sc[i];
-            //     if(i%kLx == kLx-1) cout << '/';
-            // }
             cout << '\n';
 
 
@@ -131,9 +128,11 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             for(int j = 0; j < mcs; j++){
                 model.Calculate();                     //O(N^2)
 
-                model.Measure_fast();
+                model.Measure();
                 HH = model.HH/(double) kNir;        // = E
                 MM = abs(model.staggered)/(double)kN;    // = |M|
+                MM = abs(model.sigma)/(double)kN;    // = |M|
+
 
                 model.res[0] += MM*mcs_i;              // = <m>
                 model.res[1] += (MM*mcs_i*MM);         // = <m^2>
@@ -142,6 +141,11 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
                 model.res[4] += HH*mcs_i*HH;           // = <E^2>/N
             }
             /***********************************************************/
+
+            // for(int i = 0; i < kN; i++){
+            //     cout << model.sc[i];
+            //     if(i%kLx == kLx-1) cout << '/';
+            // }
 
             /*******Calculate Magnetizaition and Specific Heat.*********/
             model.MV[i] = model.res[0];

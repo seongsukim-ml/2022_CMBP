@@ -264,7 +264,7 @@ void Cluster_LR_2D::Calculate(int _n, bool Random){
     poisson_distribution<int> PNG(lambda_tot);
     int iter_k = PNG(lambda_tot);
     // cout << "iter_k " << iter_k << endl;
-    vector<short> bond_list = vector<short>(N*(N-1)/2,0); // hashset을 써야하나?
+    // vector<short> bond_list = vector<short>(N*(N-1)/2,0); // hashset을 써야하나?
     vector<set<int>> adj = vector<set<int>>(N);
     for(int it = 0; it < iter_k; it++){ // O(lambda)
         // Walker's Alias Method

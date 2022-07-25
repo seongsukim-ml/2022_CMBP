@@ -1,5 +1,5 @@
-#ifndef ____AA_Metropolis____
-#define ____AA_Metropolis____ 
+#ifndef ____AA_SWENDSENWANG____
+#define ____AA_SWENDSENWANG____ 
 
 // File & IO System
 #include <iostream>
@@ -9,6 +9,10 @@
 #include <tuple>
 #include <string>
 #include <tuple>
+#include <set>
+#include <algorithm>
+#include <queue>
+
 // Mathmatics
 #include <math.h>
 #include <random>
@@ -33,7 +37,7 @@ static uniform_real_distribution<> dis(0.0, 1.0);
 
 typedef tuple<double,int> duo;
 
-class AA_Metropolis{
+class AA_SwendsenWang{
 
     public:
         const int Lx; // Short range (Time domain)
@@ -43,6 +47,8 @@ class AA_Metropolis{
         const double B;
         const double Jx;
         const double Jy;
+        double Jx_sign = 1;
+        double Jy_sign = 1;
         const double alpha; // dimension = 1
         bool isTinf;
 
@@ -65,17 +71,17 @@ class AA_Metropolis{
         vector<double> res;
 
         short* sc; // Square lattice configuration of 2D Ising model
-        // double prob[5];
+        // double Prob[5];
         bool* sign;
 
         unsigned long long Fliped_Step = 0;
         unsigned long long Total_Step  = 0;
         long Calc_call = 0;
 
-        static string Name(){return "AA_Metropolis";}
-        AA_Metropolis(int Lx, int Ly, int bin, double B, double Jx, double Jy, double alpha, double Tsrt, double Tfin, bool isTinf);
-        AA_Metropolis(vector<double> args);
-        ~AA_Metropolis(){
+        static string Name(){return "AA_SwendsenWang";}
+        AA_SwendsenWang(int Lx, int Ly, int bin, double B, double Jx, double Jy, double alpha, double Tsrt, double Tfin, bool isTinf);
+        AA_SwendsenWang(vector<double> args);
+        ~AA_SwendsenWang(){
             // delete e2d;
             __finish__ = clock();
             cout << "------------------------------------------------------------------------------------------------------------------\n";
@@ -83,6 +89,7 @@ class AA_Metropolis{
             cout << "------------------------------------------------------------------------------------------------------------------\n";
         }
         long double Prob(double delta);
+
         void Initialize(double beta);
         // void Initialzie(int idx);
         void Measure();
@@ -91,7 +98,7 @@ class AA_Metropolis{
         void IterateUntilEquilibrium(int equil_time,bool random = true);
 };
 
-AA_Metropolis::AA_Metropolis(int Lx, int Ly, int bin, double B, double Jx, double Jy, double alpha, double Tsrt, double Tfin, bool isTinf)
+AA_SwendsenWang::AA_SwendsenWang(int Lx, int Ly, int bin, double B, double Jx, double Jy, double alpha, double Tsrt, double Tfin, bool isTinf)
 :Lx(Lx), Ly(Ly), N(Lx*Ly), Bin(bin), B(B), Jx(Jx), Jy(Jy), YNN(Lx), alpha(alpha) {
     this-> isTinf = isTinf;
     this-> sc = new short[N];
@@ -108,13 +115,14 @@ AA_Metropolis::AA_Metropolis(int Lx, int Ly, int bin, double B, double Jx, doubl
     // }
     for(int i = 0; i < N; i++)
         sign[i] = (i/Lx)%2;
-    
-    
 
     this-> MV = vector<double>(Bin);
     this-> CV = vector<double>(Bin);
     this-> TV = vector<double>(Bin);
     this-> BetaV = vector<double>(Bin);
+    if(Jx < 0) Jx_sign = -1;
+    if(Jy < 0) Jy_sign = -1;
+
 
     __start__ = clock();
 
@@ -132,14 +140,14 @@ AA_Metropolis::AA_Metropolis(int Lx, int Ly, int bin, double B, double Jx, doubl
     e2d = ewald_ND(2,vector<int>({Lx,Ly}),alpha);
 }
 
-AA_Metropolis::AA_Metropolis(vector<double> args):
-AA_Metropolis(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],args[9]){}
+AA_SwendsenWang::AA_SwendsenWang(vector<double> args):
+AA_SwendsenWang(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],args[9]){}
 
-long double AA_Metropolis::Prob(double delta){
+long double AA_SwendsenWang::Prob(double delta){
     return expl(-this->cur_beta*delta);
 }
 
-void AA_Metropolis::Initialize(double beta){
+void AA_SwendsenWang::Initialize(double beta){
     this-> Calc_call = 0;
     this-> Fliped_Step = 0;
     this-> Total_Step = 0;
@@ -157,7 +165,7 @@ void AA_Metropolis::Initialize(double beta){
     this->Measure();
 }
 
-void AA_Metropolis::Measure(){ //O(N^2)
+void AA_SwendsenWang::Measure(){ //O(N^2)
     int i, j;
     int sigma = 0;
     int staggered = 0;
@@ -176,62 +184,101 @@ void AA_Metropolis::Measure(){ //O(N^2)
         staggered += sc[i]*(-sign[i]*2+1);
         result += temp*sc[i];
     }
-    // result*= 0.5;   // 전체의 절반만 계산했음. 해밀토니안에 2를 안곱해도 계수 조정해서 찾을 수 있지 않을까?
-                    // i=0, j=i
     HH = -result-B*sigma;
     this->HH = HH;
     this->sigma = sigma;
     this->staggered = staggered;
 }
 
-void AA_Metropolis::Measure_fast(){
+void AA_SwendsenWang::Measure_fast(){
     // double res[] = {HH,sigma,staggered};
     // return vector<double>(res,res +sizeof(res)/sizeof(res[0]));
     return; // do nothing
 }
 
-void AA_Metropolis::Calculate(int _n, bool Random){ //O(N^2)
-    int i, k, n;
-    n = !_n ? (this->N) : _n;
-    for(i = 0; i < n; i++){
-        // Sweep Randomly
-        if(Random){
-            k = (this->N)*dis(gen);
-        // Sweep Sequential
-        } else if(n%2 == 0){
-            k = 2*i;
-            if(k < N) k = (int(k/Lx))%2 == 0 ? k+1 : k;
-            else k = (int(k/Lx))%2 == 0 ? k-N : k-N+1;
-        } else{
-            k = 2*i >= N ? 2*i-N: 2*i;
+void AA_SwendsenWang::Calculate(int _n, bool Random){ //O(N^2)
+    // 1) 모든 i,j site에 대해서 bond를 계산함
+    // 1-1) 만약에 s(i) != s(j) 이면 skip
+    // 1-2) s(i) == s(j)이면 P = 1-exp(-2*beta*Jij)의 확률로 bond 생성
+    // 2) 모든 site에 대해서 bond 생성 후, BFS로 cluster 탐색. 1/2의 확률로 flip
+
+    double delta;
+    // bool bond[N][N];
+    bool visited[N];
+    memset(visited,0,sizeof(visited));
+    vector<set<int>> adj = vector<set<int>>(N);
+    // memset(bond,0,sizeof(bond));
+
+    // step 1.
+    for(int i = 0; i < N; i++){
+        // a) long range (y dir 계산)
+        int j = i + Lx;
+        while(j < N){
+            if(sc[i]*(-sign[i]*2+1) == sc[j]*(-sign[j]*2+1)){
+                delta = Jy*e2d.pi_ij_1D(i,j)*sc[i]*sc[j];
+                if(dis(gen) < (1-Prob(2*delta))){
+                    adj[i].insert(j);
+                    adj[j].insert(i);
+                }
+                // cout << i << " " << j << " " << delta << '\n';
+            }
+            j += Lx;
+        }
+        // b) short range (x dir 계산)
+        if(((j = i + XNN)-XNN)%Lx == Lx-1) j -= this->Lx;
+        if(sc[i] == sc[j]*Jx_sign){
+            delta = Jx;
+            if(dis(gen) < (1-Prob(2*delta))){
+                adj[i].insert(j);
+                adj[j].insert(i);
+            }
+            // cout << i << " " << j << " " << delta << '\n';
+        }
+    }
+
+    // step 2.
+    queue<int> que;
+    for(int i = 0; i < N; i++){ //O(N+lambda) = O(N+E)
+        // cout << "i is " << i << "\n";
+        if(visited[i] == true)
+            continue;
+        if(adj[i].empty()){
+            // cout << "i is empty" << '\n';
+            visited[i] = true;
+            continue;
         }
 
-        double delta = 0;
-        for(int jj = k%Lx; jj < N; jj+=Lx)  // Long range diff
-            delta += Jy*e2d.pi_ij_1D(jj,k)*sc[jj]; // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
+        int mul = 2*(int)(dis(gen)*2) -1;
 
-        int nn;                             // Short range diff
-        if(((nn = k - XNN)+1)%Lx == 0) nn += this->Lx; 
-        delta += Jx*sc[nn];
-        if(((nn = k + XNN)-1)%Lx == Lx-1) nn -= this->Lx;
-        delta += Jx*sc[nn];
-        
-        delta *= 2*sc[k];
-        this->Total_Step++;
+        que.push(i);
+        visited[i] = true;
+        // BFS
+        while(!que.empty()){
+            int s = que.front();
+            que.pop();
+            
+            // cout << s << endl;
 
-        if((delta <= 0) || (dis(gen) < Prob(delta))){
-            this->Fliped_Step++;
-            this->sc[k] *= -1;
-            this->sigma += 2*(this->sc[k]);
-            this->staggered +=2*(this->sc[k]*(-sign[k]*2+1));
-            this->HH += delta;
+            sc[s] *= mul; // Flip
+            this-> Total_Step++;
+            if(mul == -1)
+                this->Fliped_Step++;
+
+            auto itr = adj[s].begin();
+            while(itr != adj[s].end()){
+                int n = *itr++;
+                if(!visited[n]){
+                    visited[n] = true;
+                    que.push(n);
+                }
+            }
         }
     }
 }
 
-void AA_Metropolis::IterateUntilEquilibrium(int equil_time,bool random){
+void AA_SwendsenWang::IterateUntilEquilibrium(int equil_time,bool random){
     for(int j = 0; j < equil_time; j++)
         Calculate(0,random);
 }
 
-#endif // ____AA_Metropolis____ 
+#endif // ____AA_SWENDSENWANG____ 

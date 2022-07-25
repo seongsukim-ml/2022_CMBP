@@ -1,4 +1,4 @@
-#include "AA_Metropolis.hpp"
+#include "AA_SwendsenWang.hpp"
 #include "../../../headers/Writer.hpp"
 #include <iostream>
 #include <iomanip>
@@ -23,10 +23,10 @@ bool Random = false;
 
 int equil_time_base = 1e3;
 int equil_time = equil_time_base;
-int mcs = 1e4;
+int mcs = 1e5;
 /***************** (Test) Parameters 1 *****************/
 
-typedef AA_Metropolis Model;
+typedef AA_SwendsenWang Model;
 
 // clock used to measure time
 clock_t __start__, __finish__;
@@ -99,7 +99,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         double mcs_i = 1/double(mcs);
         double kNi  = 1/double(kN);
         double kNir = pow(kN,0.5);
-        cout << kNir << '\n';
+        // cout << kNir << '\n';
 
         for(int i = 0; i < kBin; i++){
             model.Initialize(model.BetaV[i]);
@@ -113,7 +113,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
             model.IterateUntilEquilibrium(equil_time);
 
-            model.Measure_fast();
+            model.Measure();
             HH = model.HH;
             MM = model.staggered;
 
@@ -131,7 +131,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             for(int j = 0; j < mcs; j++){
                 model.Calculate();                     //O(N^2)
 
-                model.Measure_fast();
+                model.Measure();
                 HH = model.HH/(double) kNir;        // = E
                 MM = abs(model.staggered)/(double)kN;    // = |M|
 
