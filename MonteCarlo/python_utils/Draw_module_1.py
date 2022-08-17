@@ -183,3 +183,21 @@ crit_range_dict = {"a=1"    :[1.58,1.64],
                    "a=3.5"  :[2.08,2.14],
                    "a=100"  :[2.22,2.28],
 }
+
+def draw_1binder(path):
+    L5 = pd.read_csv(path)
+    # L5 = pd.read_csv("../C++/Result/Exact_c_5_int40_1.csv")
+    Llist = [L5]
+    T2 = L5.iloc[:,1].values
+    Binder = [0.5*(3-i.iloc[:,6].values/(i.iloc[:,5].values)**2) for i in Llist]
+    plt.style.use('seaborn-whitegrid')
+
+    # plt.ylim(-0.1,2)
+    plt.xlim(1.5,4)
+    marker = ["o","s","o","s","o"]
+    for i in range(1):
+        plt.plot(T2,Binder[i],marker=marker[i],markersize=5)
+
+    # plt.axvline(x=2/np.log(1+np.sqrt(2)),c='grey',lw=1,dashes=[2,2])
+
+    plt.show()
