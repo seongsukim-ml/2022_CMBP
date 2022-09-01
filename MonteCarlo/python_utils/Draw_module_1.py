@@ -105,13 +105,15 @@ def draw_multi_with_exact(path_list,Lsize):
     plt.xlabel('Temperature T')
     plt.show()
 
-def draw_binder_FFS(path_list, Lsize, Bins, Step_Size, xliml = (1.5,4), yliml = (0.75,1), Tc=2.269, nu=1):
+def draw_binder_FFS(path_list, Lsize, Bins, Step_Size, xliml = None, yliml = (0.75,1), Tc=2.269, nu=1):
     Llist = []
     for path in path_list:
         Llist.append(pd.read_csv(path))
     marker = ["o","s","v","^","8"]
     T2 = Llist[0].iloc[:,1].values
     Binder = [0.5*(3-i.iloc[:,6].values/(i.iloc[:,5].values)**2) for i in Llist]
+    if xliml is None:
+        xliml = (T2[0],T2[-1])
 
     plt.style.use('seaborn-whitegrid')
 
