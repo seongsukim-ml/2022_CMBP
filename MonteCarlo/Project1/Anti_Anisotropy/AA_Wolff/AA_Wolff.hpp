@@ -225,7 +225,8 @@ void AA_Wolff::Calculate(int _n, bool Random){ //O(N^2)
         int j = i%Lx;
         while(j < N){
             if(!fliped[j]){
-                if(sc[i]*(-sign[i]*2+1) == sc[j]*(-sign[j]*2+1)){
+                // if(sc[i]*(-sign[i]*2+1) == sc[j]*(-sign[j]*2+1)){
+                if(sc[i] == sc[j]){
                     delta = Jy*e2d.pi_ij_1D(i,j)*sc[i]*sc[j];
                     if(dis(gen) < (1-Prob(2*delta))){
                         adj[i].insert(j);
@@ -238,33 +239,33 @@ void AA_Wolff::Calculate(int _n, bool Random){ //O(N^2)
             }
             j += Lx;
         }
-        // // b) short range (x dir 계산)
-        // if(((j = i + XNN)-XNN)%Lx == Lx-1) j -= this->Lx;
-        // if(!fliped[j]){
-        //     if(sc[i] == sc[j]*Jx_sign){
-        //         delta = Jx;
-        //         if(dis(gen) < (1-Prob(2*delta))){
-        //             adj[i].insert(j);
-        //             adj[j].insert(i);
-        //             fliped[j] = true;
-        //             que.push(j);
-        //         }
-        //         // cout << i << " " << j << " " << delta << '\n';
-        //     }
-        // }
-        // if(((j = i - XNN)+XNN)%Lx == 0) j += this->Lx;
-        // if(!fliped[j]){
-        //     if(sc[i] == sc[j]*Jx_sign){
-        //         delta = Jx;
-        //         if(dis(gen) < (1-Prob(2*delta))){
-        //             adj[i].insert(j);
-        //             adj[j].insert(i);
-        //             fliped[j] = true;
-        //             que.push(j);
-        //         }
-        //         // cout << i << " " << j << " " << delta << '\n';
-        //     }
-        // }
+        // b) short range (x dir 계산)
+        if(((j = i + XNN)-XNN)%Lx == Lx-1) j -= this->Lx;
+        if(!fliped[j]){
+            if(sc[i] == sc[j]*Jx_sign){
+                delta = Jx;
+                if(dis(gen) < (1-Prob(2*delta))){
+                    adj[i].insert(j);
+                    adj[j].insert(i);
+                    fliped[j] = true;
+                    que.push(j);
+                }
+                // cout << i << " " << j << " " << delta << '\n';
+            }
+        }
+        if(((j = i - XNN)+XNN)%Lx == 0) j += this->Lx;
+        if(!fliped[j]){
+            if(sc[i] == sc[j]*Jx_sign){
+                delta = Jx;
+                if(dis(gen) < (1-Prob(2*delta))){
+                    adj[i].insert(j);
+                    adj[j].insert(i);
+                    fliped[j] = true;
+                    que.push(j);
+                }
+                // cout << i << " " << j << " " << delta << '\n';
+            }
+        }
     }
 
     // step 2.
