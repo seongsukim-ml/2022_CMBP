@@ -12,6 +12,8 @@
  * Exponent integral : https://www.boost.org/doc/libs/1_78_0/libs/math/doc/html/math_toolkit/expint/expint_i.html
  */
 
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -139,7 +141,7 @@ double ewald_ND::pi_1(int i,int j, double kappa){
                 double temp = inv_dist*gaminc_up(alpha/2,(kappa*dis)*(kappa*dis));
                 res += temp;
             }
-        }        
+        }
     }
     return 1/gam(alpha/2)*res;
 }
@@ -163,7 +165,7 @@ double ewald_ND::pi_2(int i,int j, double kappa){
                 // cout << idx << ' ' << hx << ' ' << hy << ' ' << k_res <<'\n';
                 res += k_res;
             }
-        }        
+        }
     }
     return 2*pow(pi,d/2)/gam(alpha/2)/(L[0]*L[1])*res;
 }
@@ -194,7 +196,7 @@ double ewald_ND::pi_1_1D(int i, int j, double kappa){
             // cout << dis1 << " " << dis << '\n';
             double inv_dist = pow(dis,-alpha);
             double temp = inv_dist*gaminc_up(alpha/2,(kappa*dis)*(kappa*dis));
-            res += temp; 
+            res += temp;
             // cout << idx <<" " << yof(i)-yof(j) <<  " " << nx << " " << temp << '\n';
         }
     }
@@ -212,7 +214,7 @@ double ewald_ND::pi_2_1D(int i,int j, double kappa){
             nx *= -1;
             double k_res = cos(2*pi*vec_mul(nx,0,yof(i)-yof(j),0));
             // double pi_k = pi*dist_2pt(nx,0,0,0);
-            double pi_k = pi*abs(nx); 
+            double pi_k = pi*abs(nx);
 
             k_res *= 0.5*pow(pi_k,alpha-d);
             k_res *= gaminc_up(-0.5*(alpha-d),(pi_k/kappa)*(pi_k/kappa));
