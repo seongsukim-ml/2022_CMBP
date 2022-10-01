@@ -1,4 +1,4 @@
-#include "My_Ewald_sum.hpp"
+#include "my_ewald_sum.hpp"
 
 double pi = 3.1415926535;
 
