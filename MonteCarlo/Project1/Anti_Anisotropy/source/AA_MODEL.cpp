@@ -6,14 +6,19 @@ namespace model::AA{
     }
 
     void BIT_MODEL::Initialize(ewald_ND e1d){
-        this->sc = boost::dynamic_bitset<>(N);
-        this->sb = boost::dynamic_bitset<>(N);
+        this->sc   = boost::dynamic_bitset<>(N);
+        this->sb   = boost::dynamic_bitset<>(N);
+        
+        this->bit0 = boost::dynamic_bitset<>(N,0);
+        this->bit1 = !bit0;
+        this->correation = boost::dynamic_bitset<>(N);
+
+        this->correation_sum=vector<long>(N);
+
         // Random Initialize;
-        if(isTinf){
-            for(int i = 0; i < N; i++){
+        if(isTinf)
+            for(int i = 0; i < N; i++)
                 sc[i] = rand.bern();
-            }
-        }
 
         for(int i = 0; i < N; i++)
             this->sb[i] = (i/Lx)%2;
@@ -47,5 +52,16 @@ namespace model::AA{
         Measure();
         // Need to be implemented
         return;
+    }
+    void BIT_MODEL::Correation_Measure(){
+        // boost::dynamic_bitset<> bit_vector(N,sc);
+        correation = sc;
+        if(sc[0] == 0)
+            correation ^= bit0;
+        else if(sc[0] == 1)
+            correation ^= bit1;
+        for(int i = 0; i < N; i++){
+            correation_sum[i] += correation[i];
+        }
     }
 }

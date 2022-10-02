@@ -16,10 +16,15 @@ namespace model::AA{
         public:
             boost::dynamic_bitset<> sc;  // spin configuration
             boost::dynamic_bitset<> sb;  // background configuration of staggered board
+            boost::dynamic_bitset<> bit0;
+            boost::dynamic_bitset<> bit1;
+
+            boost::dynamic_bitset<> correation;
 
             int total_spin;
             int staggered_spin;
             double HH; // Total Energy
+            vector<double> correation_sum;
 
             ewald_ND e1d;
             myrnd rand;
@@ -42,5 +47,6 @@ namespace model::AA{
             void Initialize();
             void Measure();
             void Measure_fast();
+            // void Correation_Measure();
     };
 };
