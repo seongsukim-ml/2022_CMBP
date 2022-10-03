@@ -104,6 +104,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         /*******Calculate Magnetizaition and Specific Heat.*********/
         model.MV[cBin] = model.res[0];
         model.CV[cBin] = (model.BetaV[cBin]*model.BetaV[cBin])*(model.res[4]-model.res[3]*model.res[3]);
+        model.BV[cBin] = 0.5*(3-model.res[4]/(model.res[3]*model.res[3]));
         /***********************************************************/
 
         /*******Calculate Magnetizaition and Specific Heat.*********/

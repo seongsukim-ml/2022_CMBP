@@ -132,28 +132,34 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             cor_avg[j] = (FLOAT2)(2*cor_sum[j]-mcs)/mcs;
         /***********************************************************/
 
-        /*******Calculate Block Error.*********/
+        /*******Calculate Jackknife Error.*********/
         FLOAT2 MMerr = 0;
         FLOAT2 CCerr = 0;
         FLOAT2 BBerr = 0;
         for(int bidx = 0; bidx < blocks; bidx++){
-            MMerr += (Block_MM[bidx]-model.MV[cBin])*(Block_MM[bidx]-model.MV[cBin]);
+            FLOAT2 MMtemp  = (model.MV[cBin]*blocks-Block_MM[bidx])/(blocks-1);
+            MMerr += (model.MV[cBin]-MMtemp)*(model.MV[cBin]-MMtemp);
 
-            FLOAT2 CCtemp = model.BetaV[cBin]*model.BetaV[cBin]*(Block_HH2[bidx]-Block_HH[bidx]*Block_HH[bidx]);
+            FLOAT2 MM2temp = (model.res[1]*blocks-Block_MM2[bidx])/(blocks-1);
+            FLOAT2 MM4temp = (model.res[2]*blocks-Block_MM4[bidx])/(blocks-1);
+            FLOAT2 HHtemp  = (model.res[3]*blocks-Block_HH[bidx])/(blocks-1);
+            FLOAT2 HH2temp = (model.res[4]*blocks-Block_HH2[bidx])/(blocks-1);
+
+            FLOAT2 CCtemp = model.BetaV[cBin]*model.BetaV[cBin]*(HH2temp-HHtemp*HHtemp);
             CCerr += (CCtemp-model.CV[cBin])*(CCtemp-model.CV[cBin]);
 
-            FLOAT2 BBtemp = 0.5*(3-Block_MM4[bidx]/(Block_MM2[bidx]*Block_MM2[bidx]));
+            FLOAT2 BBtemp = 0.5*(3-MM4temp/(MM2temp*MM2temp));
             BBerr += (BBtemp-model.BV[cBin])*(BBtemp-model.BV[cBin]);
             for(int ii = 0; ii < kN; ii++){
-                FLOAT2 cor_temp = (FLOAT2)(2*Block_cor_sum[bidx*kN + ii]-block_size)/block_size;
+                FLOAT2 cor_temp = (2*(cor_sum[ii]-Block_cor_sum[bidx*kN + ii])-(mcs-block_size))/(FLOAT2)(mcs-block_size);
                 cor_err[ii] += (cor_avg[ii]-cor_temp) * (cor_avg[ii]-cor_temp);
             }
         }
-        MMerr = pow(MMerr/(blocks-1),0.5);
-        CCerr = pow(CCerr/(blocks-1),0.5);
-        BBerr = pow(BBerr/(blocks-1),0.5);
+        MMerr = pow(MMerr,0.5);
+        CCerr = pow(CCerr,0.5);
+        BBerr = pow(BBerr,0.5);
         for(int ii = 0; ii < kN; ii++){
-            cor_err[ii] = pow(cor_err[ii]/(blocks-1),0.5);
+            cor_err[ii] = pow(cor_err[ii],0.5);
         }
         /***********************************************************/
 
@@ -187,7 +193,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         result_to_file_cor_err.push_back(result3 + "\n");
     }
 
-    kFilename += "_corBlock";
+    kFilename += "_corJackknife";
     /***********Save the result of the Calculation**********/
     Writer modelW = Writer(kFilename);
     modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L,Binder,MMerr,CCerr,BBerr\n");
