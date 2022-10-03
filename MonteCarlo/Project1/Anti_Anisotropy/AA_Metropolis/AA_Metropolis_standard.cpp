@@ -5,7 +5,7 @@
 
 /***************** (Test) Parameters 1 *****************/
 int kLx         = 16;          /*Parameter: lattice size*/
-int kLy         = 16;          
+int kLy         = 16;
 
 int kN          = kLx*kLy;
 int kBin        = 31;          /*Parameter: Change binning of temperature*/
@@ -42,7 +42,7 @@ void Greetings(){
     cout << "--index--||---Temp----||EQ:sig------HH----------||magnetization---specific heat||Fliped Step------Total Step------" << "\n";
     cout << "------------------------------------------------------------------------------------------------------------------" << endl;
     cout << fixed <<setprecision(6);
-    
+
     // Show +/- sign
     cout << showpos;
     __start__ = clock();
@@ -77,7 +77,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         kBin = (int)input[2]; kB = input[3]; kJx = input[4]; kJy = input[5];
         alpha = input[6]; Tsrt = input[7]; Tfin = input[8];
         isTinf = input[9]; Random = input[10];
-        equil_time_base = input[11]; mcs = input[12];        
+        equil_time_base = input[11]; mcs = input[12];
     }
     // arguments list that helps to pass the args to model
     vector<double> args = {kLx,kLy,kBin,kB,kJx,kJy,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};
@@ -147,7 +147,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             model.MV[i] = model.res[0];
             model.CV[i] = (model.BetaV[i]*model.BetaV[i])*(model.res[4]-model.res[3]*model.res[3]);
             /***********************************************************/
-            
+
             cout <<"                         ";
             cout << left << setw(8) << model.MV[i] << "  " << left << setw(12) << model.CV[i] << "|| ";
             cout << left << setw(14) << model.Fliped_Step << "  " << left << setw(10) << model.Total_Step << endl;

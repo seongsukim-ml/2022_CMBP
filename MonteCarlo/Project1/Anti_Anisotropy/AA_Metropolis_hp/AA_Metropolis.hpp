@@ -1,5 +1,5 @@
 #ifndef ____AA_Metropolis____
-#define ____AA_Metropolis____ 
+#define ____AA_Metropolis____
 
 // File & IO System
 #include <iostream>
@@ -19,30 +19,30 @@
 #include "../../Ewald_sum.cpp"
 #include <boost/dynamic_bitset.hpp>
 
-using namespace std;
-
 #ifndef __BIT_CONVERSION__
 #define __BIT_CONVERSION__
-    #define ss(bit) (2*bit-1)
-    #define bb(spin) ((spin+1)/2)
+#define bs(bit) (2*bit-1)
+#define sb(spin) ((spin+1)/2)
 #endif
 
 #ifndef __TYPE_DEFINE__
 #define __TYPE_DEFINE__
-    typedef INT1 int32_t
-    typedef INT2 int64_t
-    typedef INT8 int8_t
-    typedef FLOAT1 long double
-    typedef FLOAT2 long double
+    typedef int32_t INT1;
+    typedef int64_t INT2;
+    typedef int8_t  INT8;
+    typedef long double FLOAT1;
+    typedef long double FLOAT2;
 #endif
 // static random_device rd;  // Will be used to obtain a seed for the random number engine
 // static mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
 // static uniform_real_distribution<> dis(0.0, 1.0);
 
-static long unsigned int seed = static_cast<long unsigned int>(time(0)); 
+using namespace std;
+
+static long unsigned int seed = static_cast<long unsigned int>(time(0));
 static mt19937 gen(seed); // Standard mersenne_twister_engine seeded with time()
 static uniform_real_distribution<> dis(0.0, 1.0);
-static bernoulli_distribution<> bern(0.5);
+static bernoulli_distribution bern(0.5);
 
 //In 2D Ising model => 2/log(1+sqrt(2))
 // const double T_CRIT = 2.269185;
@@ -74,6 +74,7 @@ class AA_Metropolis{
 
         vector<FLOAT1> MV;
         vector<FLOAT1> CV;
+        vector<FLOAT1> BV;
         vector<FLOAT1> TV;
         vector<FLOAT1> BetaV;
         vector<FLOAT1> res;
@@ -81,11 +82,13 @@ class AA_Metropolis{
         // short* sc; // Square lattice configuration of 2D Ising model
         boost::dynamic_bitset<> sc;
         // N size of correation result vector: cor[n] is correlation btw 0th site spin and nth spin;
-        boost::dynamic_bitset<> cor;       
-        boost::dynamic_bitset<> bit0;       
-        boost::dynamic_bitset<> bit1;       
+        boost::dynamic_bitset<> cor;
+        boost::dynamic_bitset<> cor_stag;
+        boost::dynamic_bitset<> bit0;
+        boost::dynamic_bitset<> bit1;
+        boost::dynamic_bitset<> sign;
         // FLOAT1 prob[5];
-        bool* sign;
+        // bool* sign;
 
         INT2 Fliped_Step = 0;
         INT2 Total_Step  = 0;
@@ -109,6 +112,7 @@ class AA_Metropolis{
         void Calculate(INT1 _n = 0,bool Random = true);
         void IterateUntilEquilibrium(INT1 equil_time,bool random = true);
         void CalculateCorrelation();
+        void CalculateCorrelationStaggered();
 };
 
 AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FLOAT1 Jy, FLOAT1 alpha, FLOAT1 Tsrt, FLOAT1 Tfin, bool isTinf)
@@ -118,9 +122,9 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
     this-> sc = boost::dynamic_bitset<>(N);
     this-> cor = boost::dynamic_bitset<>(N);
     this-> bit0 = boost::dynamic_bitset<>(N);
-    this-> bit1 = !bit0;
-    sc = !sc;
-    this-> sign = new bool[N];
+    this-> bit1 = ~bit0;
+    sc = ~sc;
+    this-> sign = boost::dynamic_bitset<>(N);
     // Checkboard style
     // if(Lx%2 == 1)
     //     for(INT1 i = 0; i < N; i++)
@@ -132,16 +136,17 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
     //     cout << -sign[i]*2+1;
     // }
     for(INT1 i = 0; i < N; i++)
-        sign[i] = (i/Lx)%2;
+        sign[i] = ~(i/Lx)%2;
 
     this-> MV = vector<FLOAT1>(Bin);
     this-> CV = vector<FLOAT1>(Bin);
+    this-> BV = vector<FLOAT1>(Bin);
     this-> TV = vector<FLOAT1>(Bin);
     this-> BetaV = vector<FLOAT1>(Bin);
 
     __start__ = clock();
 
-    for(INT1 i = 0; i < bin; i++){ 
+    for(INT1 i = 0; i < bin; i++){
         if(!Tsrt){
             this->TV[i] = Tsrt + ((Tfin-Tsrt)/(FLOAT1)(bin))*(i+1);
         } else if(bin == 1){
@@ -169,7 +174,7 @@ void AA_Metropolis::Initialize(FLOAT1 beta){
 
     // Initialize the spin configuration
     sc =  boost::dynamic_bitset<>(N);
-    sc = !sc;
+    sc = ~sc;
     for(INT1 i = 0; i < N; i++){
         // T = \inf start
         if(this->isTinf) this->sc[i] = bern(gen);
@@ -189,15 +194,15 @@ void AA_Metropolis::Measure(){ //O(N^2)
     for(i = 0; i < N; i++){
         FLOAT1 partial_sum  = 0;
         for(j = i+Lx; j < N; j+=Lx) // y 방향 long range 계산
-            partial_sum += e2d.pi_ij_1D(i,j)*ss(sc[j]);
+            partial_sum += e2d.pi_ij_1D(i,j)*bs(sc[j]);
         partial_sum *= Jy;
         if(i%Lx != Lx-1) // x 방향 short ragne 계산
-            partial_sum += Jx*ss(sc[i+1]);
+            partial_sum += Jx*bs(sc[i+1]);
         else
-            partial_sum += Jx*ss(sc[i+1-Lx]);
-        sigma += ss(sc[i]);
-        staggered += ss(sc[i])*ss(sign[i]);
-        result += partial_sum*ss(sc[i]);
+            partial_sum += Jx*bs(sc[i+1-Lx]);
+        sigma += bs(sc[i]);
+        staggered += bs(sc[i])*bs(sign[i]);
+        result += partial_sum*bs(sc[i]);
     }
     // result*= 0.5;   // 전체의 절반만 계산했음. 해밀토니안에 2를 안곱해도 계수 조정해서 찾을 수 있지 않을까?
                     // i=0, j=i
@@ -231,22 +236,22 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
 
         FLOAT1 delta = 0;
         for(INT1 jj = k%Lx; jj < N; jj+=Lx)  // Long range diff
-            delta += Jy*e2d.pi_ij_1D(jj,k)*ss(sc[jj]); // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
+            delta += Jy*e2d.pi_ij_1D(jj,k)*bs(sc[jj]); // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
 
         INT1 nn;                             // Short range diff
-        if(((nn = k - XNN)+1)%Lx == 0) nn += this->Lx; 
-        delta += Jx*ss(sc[nn]);
+        if(((nn = k - XNN)+1)%Lx == 0) nn += this->Lx;
+        delta += Jx*bs(sc[nn]);
         if(((nn = k + XNN)-1)%Lx == Lx-1) nn -= this->Lx;
-        delta += Jx*ss(sc[nn]);
-        
-        delta *= 2*ss(sc[k]);
+        delta += Jx*bs(sc[nn]);
+
+        delta *= 2*bs(sc[k]);
         this->Total_Step++;
 
         if((delta <= 0) || (dis(gen) < Prob(delta))){
             this->Fliped_Step++;
-            this->ss(sc[k]) *= -1;
-            this->sigma += 2*(this->ss(sc[k]));
-            this->staggered +=2*(this->ss(sc[k])*ss(sign[k]));
+            sc[k] = !sc[k];
+            this->sigma += 2*(bs(sc[k]));
+            this->staggered +=2*(bs(sc[k])*bs(sign[k]));
             this->HH += delta;
         }
     }
@@ -258,10 +263,18 @@ void AA_Metropolis::IterateUntilEquilibrium(INT1 equil_time,bool random){
 }
 
 void AA_Metropolis::CalculateCorrelation(){
+    // xor 연산이 ~순서에 무관하기 때문에, bit1, bit0를 다르게 넣어줌
     if(sc[0] == 0)
-        cor = sc^bit0;
+        cor = (sc^bit1);
     else
-        cor = sc^bit1;
+        cor = (sc^bit0);
 }
 
-#endif // ____AA_Metropolis____ 
+void AA_Metropolis::CalculateCorrelationStaggered(){
+    cor_stag = (sc^sign);
+    if(cor_stag[0] == 0)
+        cor_stag = (cor_stag^bit1);
+    else
+        cor_stag = (cor_stag^bit0);
+}
+#endif // ____AA_Metropolis____

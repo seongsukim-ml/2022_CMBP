@@ -5,7 +5,7 @@
 
 /***************** (Test) Parameters 1 *****************/
 int kLx         = 16;          /*Parameter: lattice size*/
-int kLy         = 16;          
+int kLy         = 16;
 
 int kN          = kLx*kLy;
 int kBin        = 31;          /*Parameter: Change binning of temperature*/
@@ -42,7 +42,7 @@ void Greetings(){
     cout << "--index--||---Temp----||EQ:sig------HH----------||magnetization---specific heat||Fliped Step------Total Step------" << "\n";
     cout << "------------------------------------------------------------------------------------------------------------------" << endl;
     cout << fixed <<setprecision(6);
-    
+
     // Show +/- sign
     cout << showpos;
     __start__ = clock();

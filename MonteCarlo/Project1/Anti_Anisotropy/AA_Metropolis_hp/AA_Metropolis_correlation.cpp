@@ -2,6 +2,7 @@
 
 // arguments list that helps to pass the args to model
 vector<string> result_to_file = vector<string>();
+vector<string> result_to_file_cor = vector<string>();
 
 int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv[1]--> Input parameter
     signal(SIGSEGV, &handler);
@@ -35,7 +36,6 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     FLOAT1 kNi   = 1/FLOAT1(kN);
     FLOAT1 kNi2  = kNi*kNi;
     FLOAT1 kNir  = 1/pow(kN,0.5);
-    // cout << kNir << '\n';
 
     for(int cBin = 0; cBin < kBin; cBin++){
         model.Initialize(model.BetaV[cBin]);
@@ -43,6 +43,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         // Output data
         // 0: <m>, 1: <m^2>, 2: <m^4>, 3: <E>/sqrt(N), 4: <E^2>/N
         model.res = vector<FLOAT1>(5,0);
+        vector<INT2>   cor_sum(kN);
+        vector<FLOAT2> cor_avg(kN);
 
         equil_time = equil_time_base;
         // if(model.TV[i]<=2.4 || model.TV[i]>=2.0) equil_time =1000;
@@ -56,10 +58,6 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         cout <<"idx: " << left << setw(4) << cBin << "|| " << left << setw(10) << model.TV[cBin];
         cout << "|| "  << left << setw(9) << MM/(FLOAT1)kN << "  " << left << setw(12) << HH;
         cout << "|| "  << left << setw(9) << model.sigma/(FLOAT1)kN << "|| ";
-        // for(int i = 0; i < kN; i++){
-        //     cout << model.sc[i];
-        //     if(i%kLx == kLx-1) cout << '/';
-        // }
         cout << '\n';
 
         /***********Monte Carlo Step and Caculate the data***********/
@@ -86,6 +84,12 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
                 blocksum_MM4  += MM*MM*MM*MM;
                 blocksum_HH   += HH;
                 blocksum_HH2  += HH*HH;
+
+                model.CalculateCorrelation();
+                // model.CalculateCorrelationStaggered();
+                for(int ii = 0; ii < kN; ii++)
+                    cor_sum[ii] += model.cor[ii];
+                    // cor_sum[ii] += model.cor_stag[ii];
             }
             model.res[0] += blocksum_MM *bsi*kNi;          // = <m>
             model.res[1] += blocksum_MM2*bsi*kNi2;         // = <m^2>
@@ -102,6 +106,11 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         model.CV[cBin] = (model.BetaV[cBin]*model.BetaV[cBin])*(model.res[4]-model.res[3]*model.res[3]);
         /***********************************************************/
 
+        /*******Calculate Magnetizaition and Specific Heat.*********/
+        for(int j = 0; j < kN; j++)
+            cor_avg[j] = (FLOAT2)(2*cor_sum[j]-mcs)/mcs;
+        /***********************************************************/
+
         cout <<"                         ";
         cout << left << setw(8) << model.MV[cBin] << "  " << left << setw(12) << model.CV[cBin] << "|| ";
         cout << left << setw(14) << model.Fliped_Step << "  " << left << setw(10) << model.Total_Step << endl;
@@ -111,14 +120,31 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + "\n";
 
         result_to_file.push_back(result);
+
+        // correlation result save
+        string result2 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
+        for(int j = 0; j < kN; j++){
+            result2 = result2 + to_string(cor_avg[j]) + ",";
+        }
+        result2.pop_back();
+        result_to_file_cor.push_back(result2 + "\n");
     }
 
+    kFilename += "_cor";
     /***********Save the result of the Calculation**********/
-    Writer modelW = Writer(kFilename+"_Test_");
+    Writer modelW = Writer(kFilename);
     modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L\n");
     for(int i = 0; i < kBin; i++)
         modelW.WriteLine(result_to_file.at(i));
     modelW.CloseNewFile();
+    /******************************************************/
+
+    /***********Save the result of the Correlation**********/
+    Writer modelW2 = Writer(kFilename+"_corres");
+    modelW2.WriteLine("idx,temperture,cor\n");
+    for(int i = 0; i < kBin; i++)
+        modelW2.WriteLine(result_to_file_cor.at(i));
+    modelW2.CloseNewFile();
     /******************************************************/
     Farewell();
 }

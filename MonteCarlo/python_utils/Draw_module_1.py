@@ -57,8 +57,8 @@ def draw_multi(path_list,Lsize,Bins,Step_Size):
         plt.errorbar(T2,M2,M2error,lw=1, linestyle='', marker='s', markersize=5, label='magnetization'+str(Lsize[i]),mfc='none')
         plt.plot(T2,C2,linestyle='', marker='o', markersize=5, label='specific heat'+str(Lsize[i]),mfc='none')
         # plt.errorbar(T2,C2,yerr=C2error,linestyle='', marker='o', markersize=5,capsize=7, color='orange' ,label='specific heat',mfc='none')
-    
-    plt.legend()    
+
+    plt.legend()
     plt.ylim(-0.1,3)
     # plt.xlim(T2[0],T2[-1])
 
@@ -90,10 +90,10 @@ def draw_multi_with_exact(path_list,Lsize):
         plt.plot(T2,M2, lw=1, linestyle='', marker='s', markersize=5, label='magnetization'+str(Lsize[i]),mfc='none')
         plt.plot(T2,C2,linestyle='', marker='o', markersize=5, label='specific heat'+str(Lsize[i]),mfc='none')
         # plt.errorbar(T2,C2,yerr=C2error,linestyle='', marker='o', markersize=5,capsize=7, color='orange' ,label='specific heat',mfc='none')
-    
+
     plt.legend()
     plt.plot(*Exact_M_data, color='b')
-    plt.plot(*Exact_C_data, color='orange')    
+    plt.plot(*Exact_C_data, color='orange')
     plt.axvline(x=2/np.log(1+np.sqrt(2)),c='grey',lw=1,dashes=[2,2])
     # plt.text(0.05,1.91,"100 $\\times$ 100 lattice")
     # plt.text(0.05,1.79,"15000 steps per site")
@@ -147,7 +147,7 @@ def draw_binder_FFS(path_list, Lsize, Bins, Step_Size, xliml = None, yliml = (0.
     # plt.xlabel('$L^{1/\nu}[T-T_c]$')
     plt.show()
 
-def improved_list_dir(path, rms = ["Input"]): 
+def improved_list_dir(path, rms = ["Input"]):
     ls = os.listdir(path)
     ls.sort()
 

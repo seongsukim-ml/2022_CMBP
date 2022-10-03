@@ -1,86 +1,23 @@
-#include "AA_Metropolis.hpp"
-#include "../../../headers/Writer.hpp"
-#include <iostream>
-#include <iomanip>
-
-/***************** (Test) Parameters 1 *****************/
-int kLx         = 24;          /*Parameter: lattice size*/
-int kLy         = 24;
-
-int kN          = kLx*kLy;
-int kBin        = 40;          /*Parameter: Change binning of temperature*/
-
-double kB       = 0;
-double kJx      = 1;
-double kJy      = -1;
-double alpha    = 3;
-
-double Tsrt = 1.5;
-double Tfin = 4;
-
-double isTinf = false;
-bool Random = false;
-
-int equil_time_base = 1e4;
-int equil_time = equil_time_base;
-int mcs = 1e4;
-/***************** (Test) Parameters 1 *****************/
-
-typedef AA_Metropolis Model;
-
-// clock used to measure time
-clock_t __start__, __finish__;
-
-void Greetings(){
-    string Tat = isTinf ? "inf" : "0";
-
-    cout << Model::Name() + "Algorithm\n";
-    cout << "Radnomness test(seed): " << seed << '\n';
-    cout << "L = " << kLx << "," << kLy << ", " << "bin = " << kBin << ", Start T at " << Tat <<  "\n";
-    cout << "N = " << kN << ", " << "alpha = " << alpha << ", mcs " << mcs <<  "\n";
-    cout << "------------------------------------------------------------------------------------------------------------------" << "\n";
-    cout << "--index--||---Temp----||EQ:sig------HH----------||magnetization---specific heat||Fliped Step------Total Step------" << "\n";
-    cout << "------------------------------------------------------------------------------------------------------------------" << endl;
-    cout << fixed <<setprecision(6);
-
-    // Show +/- sign
-    cout << showpos;
-    __start__ = clock();
-}
-
-void Farewell(int N = 0){
-    __finish__ = clock();
-    if(N)
-        cout << "\nProgram Abonormally Exit. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
-    else
-        cout << "Program Exit. Spent time: " << (double)(__finish__-__start__)/CLOCKS_PER_SEC << "\n";
-    cout << "-------------------------------------------------------------------------------------------\n";
-}
-
-// Event handler that notify the spent time when program abonormally stop
-void handler(int A){
-    cout << endl;
-    Farewell(1);
-    exit(A);
-}
+#include "AA_Metropolis_program_header.hpp"
 
 // arguments list that helps to pass the args to model
 vector<string> result_to_file = vector<string>();
+vector<string> result_to_file_cor = vector<string>();
 
 int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv[1]--> Input parameter
     signal(SIGSEGV, &handler);
     signal(SIGINT, &handler);
     if(argn >= 2){
         string Input_file = argv[1];
-        vector<double> input = Writer::Argument_reader(Input_file,13);
-        kLx = (int)input[0]; kLy = (int)input[1]; kN = kLx*kLy;
-        kBin = (int)input[2]; kB = input[3]; kJx = input[4]; kJy = input[5];
+        vector<FLOAT1> input = Writer::Argument_readerL(Input_file,13);
+        kLx = (INT1)input[0]; kLy = (INT1)input[1]; kN = kLx*kLy;
+        kBin = (INT1)input[2]; kB = input[3]; kJx = input[4]; kJy = input[5];
         alpha = input[6]; Tsrt = input[7]; Tfin = input[8];
         isTinf = input[9]; Random = input[10];
         equil_time_base = input[11]; mcs = input[12];
     }
     // arguments list that helps to pass the args to model
-    vector<double> args = {kLx,kLy,kBin,kB,kJx,kJy,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};
+    vector<FLOAT2> args = {kLx,kLy,kBin,kB,kJx,kJy,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};
 
     // Filename Base: '\Result\(Model Name)_c_(kL)_int[erval]_(kBin) + (blahblah)
     #ifdef _WIN32
@@ -95,20 +32,20 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     for(int gg = 0; gg < 1; gg++){
         Model model = Model(args);
 
-        double MM, HH;
-        double mcs_i = 1/double(mcs);
-        double kNi  = 1/double(kN);
-        double kNir = pow(kN,0.5);
+        FLOAT1 MM, HH;
+        FLOAT1 mcs_i = 1/FLOAT1(mcs);
+        FLOAT1 kNi  = 1/FLOAT1(kN);
+        FLOAT1 kNir = pow(kN,0.5);
         cout << kNir << '\n';
 
-        vector<double> Binder = vector<double>(kBin,0);
+        vector<FLOAT1> Binder = vector<FLOAT1>(kBin,0);
 
         for(int i = 0; i < kBin; i++){
             model.Initialize(model.BetaV[i]);
 
             // Output data
             // 0: <m>, 1: <m^2>, 2: <m^4>, 3: <E>/sqrt(N), 4: <E^2>/N
-            model.res = vector<double>(5,0);
+            model.res = vector<FLOAT1>(5,0);
 
             equil_time = equil_time_base;
             // if(model.TV[i]<=2.4 || model.TV[i]>=2.0) equil_time =1000;
@@ -120,23 +57,23 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             MM = model.staggered;
 
             cout <<"idx: " << left << setw(4) << i << "|| " << left << setw(10) << model.TV[i];
-            cout << "|| "  << left << setw(9) << MM/(double)kN << "  " << left << setw(12) << HH;
-            cout << "|| "  << left << setw(9) << model.sigma/(double)kN << "|| ";
+            cout << "|| "  << left << setw(9) << MM/(FLOAT1)kN << "  " << left << setw(12) << HH;
+            cout << "|| "  << left << setw(9) << model.sigma/(FLOAT1)kN << "|| ";
             // for(int i = 0; i < kN; i++){
             //     cout << model.sc[i];
             //     if(i%kLx == kLx-1) cout << '/';
             // }
             cout << '\n';
 
-            int jB = 1000; // Jackknife blcok
-            vector<double> Jackknife_1 = vector<double>(mcs/jB,0);
-            vector<double> Jackknife_HH = vector<double>(mcs/jB,0);
-            vector<double> Jackknife_HH2 = vector<double>(mcs/jB,0);
-            vector<double> Jackknife_2 = vector<double>(mcs/jB,0);
-            vector<double> Jackknife_MM2 = vector<double>(mcs/jB,0);
-            vector<double> Jackknife_MM4 = vector<double>(mcs/jB,0);
-            double c_error = 0;
-            double b_error = 0;
+            INT1 jB = 1000; // Jackknife blcok
+            vector<FLOAT1> Jackknife_1 = vector<FLOAT1>(mcs/jB,0);
+            vector<FLOAT1> Jackknife_HH = vector<FLOAT1>(mcs/jB,0);
+            vector<FLOAT1> Jackknife_HH2 = vector<FLOAT1>(mcs/jB,0);
+            vector<FLOAT1> Jackknife_2 = vector<FLOAT1>(mcs/jB,0);
+            vector<FLOAT1> Jackknife_MM2 = vector<FLOAT1>(mcs/jB,0);
+            vector<FLOAT1> Jackknife_MM4 = vector<FLOAT1>(mcs/jB,0);
+            FLOAT1 c_error = 0;
+            FLOAT1 b_error = 0;
 
 
             /***********Monte Carlo Step and Caculate the data***********/
@@ -144,8 +81,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
                 model.Calculate();                     //O(N^2)
 
                 model.Measure_fast();
-                HH = model.HH/(double) kNir;        // = E
-                MM = abs(model.staggered)/(double)kN;    // = |M|
+                HH = model.HH/(FLOAT1) kNir;        // = E
+                MM = abs(model.staggered)/(FLOAT1)kN;    // = |M|
 
                 model.res[0] += MM*mcs_i;              // = <m>
                 model.res[1] += (MM*mcs_i*MM);         // = <m^2>
@@ -171,8 +108,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
                 Jackknife_1[j] = (model.BetaV[i]*model.BetaV[i])*((mcs*model.res[4]-Jackknife_HH2[j])/(mcs-jB) \
                             - (mcs*model.res[3]-Jackknife_HH[j])/(mcs-jB)*(mcs*model.res[3]-Jackknife_HH[j])/(mcs-jB));
                 c_error += (Jackknife_1[j]-model.CV[i])*(Jackknife_1[j]-model.CV[i]);
-                double MM2_dif = (mcs*model.res[1]-Jackknife_MM2[j])/(mcs-jB);
-                double MM4_dif = (mcs*model.res[2]-Jackknife_MM4[j])/(mcs-jB);
+                FLOAT1 MM2_dif = (mcs*model.res[1]-Jackknife_MM2[j])/(mcs-jB);
+                FLOAT1 MM4_dif = (mcs*model.res[2]-Jackknife_MM4[j])/(mcs-jB);
                 Jackknife_2[j] = 0.5*(3-(MM4_dif/MM2_dif/MM2_dif));
                 b_error += (Jackknife_2[j]-Binder[i])*(Jackknife_2[j]-Binder[i]);
             }
@@ -188,18 +125,17 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             string result = to_string(i) + "," + to_string(model.TV[i]) + "," + to_string(model.MV[i]) + "," + to_string(model.CV[i]) + ",";
             result = result + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
             result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + ",";
-            result = result + to_string(c_error) +  "," + to_string(b_error) + "\n";
+            result = result + to_string(0) + "," to_string(c_error) +  "," + to_string(b_error) + "\n";
 
             result_to_file.push_back(result);
         }
 
         /***********Save the result of the Calculation**********/
         Writer modelW = Writer(kFilename+"_Test_");
-        modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L,cerror,berror\n");
+        modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L,MMerr,CCerr,BBerr\n");
         for(int i = 0; i < kBin; i++)
             modelW.WriteLine(result_to_file.at(i));
         modelW.CloseNewFile();
         /******************************************************/
     }
-    Farewell();
 }

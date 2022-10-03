@@ -1,5 +1,5 @@
 #ifndef ____AA_Metropolis____
-#define ____AA_Metropolis____ 
+#define ____AA_Metropolis____
 
 // File & IO System
 #include <iostream>
@@ -24,7 +24,7 @@ using namespace std;
 // static mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
 // static uniform_real_distribution<> dis(0.0, 1.0);
 
-static long unsigned int seed = static_cast<long unsigned int>(time(0)); 
+static long unsigned int seed = static_cast<long unsigned int>(time(0));
 static mt19937 gen(seed); // Standard mersenne_twister_engine seeded with time()
 static uniform_real_distribution<> dis(0.0, 1.0);
 
@@ -108,8 +108,8 @@ AA_Metropolis::AA_Metropolis(int Lx, int Ly, int bin, double B, double Jx, doubl
     // }
     for(int i = 0; i < N; i++)
         sign[i] = (i/Lx)%2;
-    
-    
+
+
 
     this-> MV = vector<double>(Bin);
     this-> CV = vector<double>(Bin);
@@ -118,7 +118,7 @@ AA_Metropolis::AA_Metropolis(int Lx, int Ly, int bin, double B, double Jx, doubl
 
     __start__ = clock();
 
-    for(int i = 0; i < bin; i++){ 
+    for(int i = 0; i < bin; i++){
         if(!Tsrt){
             this->TV[i] = Tsrt + ((Tfin-Tsrt)/(double)(bin))*(i+1);
         } else if(bin == 1){
@@ -211,11 +211,11 @@ void AA_Metropolis::Calculate(int _n, bool Random){ //O(N^2)
             delta += Jy*e2d.pi_ij_1D(jj,k)*sc[jj]; // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
 
         int nn;                             // Short range diff
-        if(((nn = k - XNN)+1)%Lx == 0) nn += this->Lx; 
+        if(((nn = k - XNN)+1)%Lx == 0) nn += this->Lx;
         delta += Jx*sc[nn];
         if(((nn = k + XNN)-1)%Lx == Lx-1) nn -= this->Lx;
         delta += Jx*sc[nn];
-        
+
         delta *= 2*sc[k];
         this->Total_Step++;
 
@@ -234,4 +234,4 @@ void AA_Metropolis::IterateUntilEquilibrium(int equil_time,bool random){
         Calculate(0,random);
 }
 
-#endif // ____AA_Metropolis____ 
+#endif // ____AA_Metropolis____

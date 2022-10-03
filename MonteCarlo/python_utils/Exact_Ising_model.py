@@ -19,7 +19,7 @@ def C(T,J=1):
 def C2(T,J=1):
     b = 1/T
     Tc = 2/np.log(1+np.sqrt(2))
-    return -2/np.pi*(2*J*b)**2*np.log(np.abs(1-T/Tc))   
+    return -2/np.pi*(2*J*b)**2*np.log(np.abs(1-T/Tc))
 
 def C3(T,J=1):
     b = 1/T #beta
@@ -62,5 +62,5 @@ def Exact_calc(Ebin = 200, Ebin2 = 200):
 
     for i in range(len(ExactC)):
         ExactT2[i] = 5/Ebin2*(i+1)
-        ExactC[i] = C(ExactT2[i]) 
-    return [ExactT, ExactM], [ExactT2, ExactC]    
+        ExactC[i] = C(ExactT2[i])
+    return [ExactT, ExactM], [ExactT2, ExactC]

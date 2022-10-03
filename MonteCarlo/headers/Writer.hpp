@@ -1,7 +1,7 @@
 #ifndef ____Writer____
 #define ____Writer____
 
-// File Stream and etc. 
+// File Stream and etc.
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -38,6 +38,7 @@ class Writer {
         void OpenNewFile();
         void WriteLine(string contents);
         void WriteLine(double contents);
+        void WriteLine(long double contents);
         void WriteLine(int contents);
         void CloseNewFile();
         static vector<double> Argument_reader(string file_path,int size){
@@ -50,7 +51,24 @@ class Writer {
             for(int i = 0; i < size; i++){
                 string var_name, equal_sign;
                 mf >> var_name >> equal_sign; // Not use.
-                double data;
+                long double data;
+                mf >> data;
+                res.push_back(data);
+            }
+            mf.close();
+            return res;
+        };
+        static vector<long double> Argument_readerL(string file_path,int size){
+            ifstream mf(file_path);
+            if(mf.fail()){
+                cerr << "Not correct file path" << endl;
+                exit(100);
+            }
+            vector<long double> res;
+            for(int i = 0; i < size; i++){
+                string var_name, equal_sign;
+                mf >> var_name >> equal_sign; // Not use.
+                long double data;
                 mf >> data;
                 res.push_back(data);
             }
@@ -107,6 +125,10 @@ void Writer::WriteLine(string contents){
     myfile << contents;
 }
 
+void Writer::WriteLine(long double contents){
+    // This assumes that there is no line break.
+    myfile << contents;
+}
 void Writer::WriteLine(double contents){
     // This assumes that there is no line break.
     myfile << contents;
