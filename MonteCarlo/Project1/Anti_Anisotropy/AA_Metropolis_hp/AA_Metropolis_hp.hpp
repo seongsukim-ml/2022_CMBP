@@ -18,6 +18,7 @@
 // Ewald sum
 #include "../../Ewald_sum.cpp"
 #include <boost/dynamic_bitset.hpp>
+#include <cblas.h>
 
 #ifndef __BIT_CONVERSION__
 #define __BIT_CONVERSION__
@@ -80,13 +81,17 @@ class AA_Metropolis{
         vector<FLOAT1> res;
 
         // short* sc; // Square lattice configuration of 2D Ising model
-        boost::dynamic_bitset<> sc;
+        vector<INT8> sc;
         // N size of correation result vector: cor[n] is correlation btw 0th site spin and nth spin;
-        boost::dynamic_bitset<> cor;
-        boost::dynamic_bitset<> cor_stag;
-        boost::dynamic_bitset<> bit0;
-        boost::dynamic_bitset<> bit1;
-        boost::dynamic_bitset<> sign;
+        float* cor_long;
+        float* cor_short;
+        float *AA, *BB;
+
+
+        vector<INT8> sign;
+        vector<INT8> linked_cb; // linked checkerboard;
+        vector<INT8> linked_rn; // linked checkerboard;
+        vector<INT8> linked_ln; // linked checkerboard;
         // FLOAT1 prob[5];
         // bool* sign;
 
@@ -112,19 +117,24 @@ class AA_Metropolis{
         void Calculate(INT1 _n = 0,bool Random = true);
         void IterateUntilEquilibrium(INT1 equil_time,bool random = true);
         void CalculateCorrelation();
-        void CalculateCorrelationStaggered();
+        // void CalculateCorrelationStaggered();
 };
 
 AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FLOAT1 Jy, FLOAT1 alpha, FLOAT1 Tsrt, FLOAT1 Tfin, bool isTinf)
 :Lx(Lx), Ly(Ly), N(Lx*Ly), Bin(bin), B(B), Jx(Jx), Jy(Jy), YNN(Lx), alpha(alpha) {
     this-> isTinf = isTinf;
     // this-> sc = new short[N];
-    this-> sc = boost::dynamic_bitset<>(N);
-    this-> cor = boost::dynamic_bitset<>(N);
-    this-> bit0 = boost::dynamic_bitset<>(N);
-    this-> bit1 = ~bit0;
-    sc = ~sc;
-    this-> sign = boost::dynamic_bitset<>(N);
+    this-> sc        = vector<INT8>(N,1);
+    this-> cor_long  = new float[Lx];
+    this-> cor_short = new float[Ly];
+    this-> sign      = vector<INT8>(N);
+    this-> linked_cb = vector<INT8>(N);
+    this-> linked_ln = vector<INT8>(N);
+    this-> linked_rn = vector<INT8>(N);
+
+    AA = new float[Lx];
+    BB = new float[Ly];
+
     // Checkboard style
     // if(Lx%2 == 1)
     //     for(INT1 i = 0; i < N; i++)
@@ -135,8 +145,33 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
     // for(INT1 i = 0; i < N; i++){
     //     cout << -sign[i]*2+1;
     // }
+
     for(INT1 i = 0; i < N; i++)
-        sign[i] = ~(i/Lx)%2;
+        sign[i] = bs((i/Lx)%2);
+
+    for(int i = 0; i < N; i++){
+        int k;
+        if(N%2 == 0){ // FIXME: Linked list 
+            k = 2*i;
+            if(k < N) k = (INT1(k/Lx))%2 == 0 ? k+1 : k;
+            else k = (INT1(k/Lx))%2 == 0 ? k-N : k-N+1;
+        } else{
+            k = 2*i >= N ? 2*i-N: 2*i;
+        }
+        linked_cb[i] = k;
+    }
+
+    for(int i = 0; i < N; i++){
+        int nn;
+        if(((nn = i - XNN)+1)%Lx == 0) nn += this->Lx;
+        linked_ln[i] = nn;
+        if(((nn = i + XNN)-1)%Lx == Lx-1) nn -= this->Lx;
+        linked_rn[i] = nn;
+    }
+
+    this-> linked_cb = vector<INT8>(N);
+    this-> linked_ln = vector<INT8>(N);
+    this-> linked_rn = vector<INT8>(N);
 
     this-> MV = vector<FLOAT1>(Bin);
     this-> CV = vector<FLOAT1>(Bin);
@@ -173,8 +208,7 @@ void AA_Metropolis::Initialize(FLOAT1 beta){
     this-> Total_Step = 0;
 
     // Initialize the spin configuration
-    sc =  boost::dynamic_bitset<>(N);
-    sc = ~sc;
+    sc = vector<INT8>(N,1);
     // if(Random)
     for(INT1 i = 0; i < N; i++){
         // T = \inf start
@@ -227,35 +261,27 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
         if(Random){ // 골고루 분포되어있는 랜덤을 찾아보면 쓸 수 있음
             k = (this->N)*dis(gen);
         // Sweep Sequential
-        } else if(n%2 == 0){ // FIXME: Linked list 
-            k = 2*i;
-            if(k < N) k = (INT1(k/Lx))%2 == 0 ? k+1 : k;
-            else k = (INT1(k/Lx))%2 == 0 ? k-N : k-N+1;
-        } else{
-            k = 2*i >= N ? 2*i-N: 2*i;
+        } else {
+            k = linked_cb[i];
         }
 
         FLOAT1 delta = 0;
         // FIXME: Linked list
         for(INT1 jj = k%Lx; jj < N; jj+=Lx)  // Long range diff
-            delta += Jy*e2d.pi_ij_1D(jj,k)*bs(sc[jj]); // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
+            delta += Jy*e2d.pi_ij_1D(jj,k)*sc[jj]; // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
 
-        INT1 nn;                             // Short range diff
-        // FIXME: Neighbor idx array
-        if(((nn = k - XNN)+1)%Lx == 0) nn += this->Lx;
-        delta += Jx*bs(sc[nn]);
-        if(((nn = k + XNN)-1)%Lx == Lx-1) nn -= this->Lx;
-        delta += Jx*bs(sc[nn]);
+                                             // Short range diff
+        delta += Jx*(sc[linked_ln[k]]+sc[linked_ln[k]]);
 
-        delta *= 2*bs(sc[k]);
+        delta *= 2*sc[k];
         this->Total_Step++;
 
         if((delta <= 0) || (dis(gen) < Prob(delta))){
             this->Fliped_Step++;
-            sc[k] = !sc[k];
-            this->sigma += 2*(bs(sc[k]));
+            sc[k] = -sc[k];
+            this->sigma += 2*(sc[k]);
             // FIXME: XOR
-            this->staggered +=2*(bs(sc[k])*bs(sign[k]));
+            this->staggered +=2*(sc[k]*sign[k]);
             this->HH += delta;
         }
     }
@@ -268,17 +294,30 @@ void AA_Metropolis::IterateUntilEquilibrium(INT1 equil_time,bool random){
 
 void AA_Metropolis::CalculateCorrelation(){
     // xor 연산이 ~순서에 무관하기 때문에, bit1, bit0를 다르게 넣어줌
-    if(sc[0] == 0)
-        cor = (sc^bit1);
-    else
-        cor = (sc^bit0);
+    for(int i = 0; i < Lx; i++)
+        cor_short[i] = 0;
+    for(int i = 0; i < Ly; i++)
+        cor_long[i] = 0;
+
+    for(int i = 0; i < Ly; i++){
+        for(int j = 0; j < Lx; j++){
+            AA[j] = AA[i*Lx + j];
+        }
+        cblas_sspr(CblasRowMajor,CblasUpper,Lx,1/(FLOAT2)Lx,AA,1,cor_short);
+    }
+    for(int i = 0; i < Lx; i++){
+        for(int j = 0; j < Ly; j++){
+            BB[j] = BB[j*Lx + i];
+        }
+        cblas_sspr(CblasRowMajor,CblasUpper,Ly,1/(FLOAT2)Ly,BB,1,cor_long);
+    }
 }
 
-void AA_Metropolis::CalculateCorrelationStaggered(){
-    cor_stag = (sc^sign);
-    if(cor_stag[0] == 0)
-        cor_stag = (cor_stag^bit1);
-    else
-        cor_stag = (cor_stag^bit0);
-}
+// void AA_Metropolis::CalculateCorrelationStaggered(){
+//     cor_stag = (sc^sign);
+//     if(cor_stag[0] == 0)
+//         cor_stag = (cor_stag^bit1);
+//     else
+//         cor_stag = (cor_stag^bit0);
+// }
 #endif // ____AA_Metropolis____

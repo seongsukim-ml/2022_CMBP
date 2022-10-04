@@ -87,6 +87,9 @@ class AA_Metropolis{
         boost::dynamic_bitset<> bit0;
         boost::dynamic_bitset<> bit1;
         boost::dynamic_bitset<> sign;
+        vector<INT8> linked_cb; // linked checkerboard;
+        vector<INT8> linked_rn; // linked checkerboard;
+        vector<INT8> linked_ln; // linked checkerboard;
         // FLOAT1 prob[5];
         // bool* sign;
 
@@ -125,6 +128,10 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
     this-> bit1 = ~bit0;
     sc = ~sc;
     this-> sign = boost::dynamic_bitset<>(N);
+
+    this-> linked_cb = vector<INT8>(N);
+    this-> linked_ln = vector<INT8>(N);
+    this-> linked_rn = vector<INT8>(N);
     // Checkboard style
     // if(Lx%2 == 1)
     //     for(INT1 i = 0; i < N; i++)
@@ -137,6 +144,26 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
     // }
     for(INT1 i = 0; i < N; i++)
         sign[i] = ~(i/Lx)%2;
+
+    for(int i = 0; i < N; i++){
+        int k;
+        if(N%2 == 0){ // FIXME: Linked list 
+            k = 2*i;
+            if(k < N) k = (INT1(k/Lx))%2 == 0 ? k+1 : k;
+            else k = (INT1(k/Lx))%2 == 0 ? k-N : k-N+1;
+        } else{
+            k = 2*i >= N ? 2*i-N: 2*i;
+        }
+        linked_cb[i] = k;
+    }
+
+    for(int i = 0; i < N; i++){
+        int nn;
+        if(((nn = i - XNN)+1)%Lx == 0) nn += this->Lx;
+        linked_ln[i] = nn;
+        if(((nn = i + XNN)-1)%Lx == Lx-1) nn -= this->Lx;
+        linked_rn[i] = nn;
+    }
 
     this-> MV = vector<FLOAT1>(Bin);
     this-> CV = vector<FLOAT1>(Bin);
@@ -227,12 +254,8 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
         if(Random){ // 골고루 분포되어있는 랜덤을 찾아보면 쓸 수 있음
             k = (this->N)*dis(gen);
         // Sweep Sequential
-        } else if(n%2 == 0){ // FIXME: Linked list 
-            k = 2*i;
-            if(k < N) k = (INT1(k/Lx))%2 == 0 ? k+1 : k;
-            else k = (INT1(k/Lx))%2 == 0 ? k-N : k-N+1;
-        } else{
-            k = 2*i >= N ? 2*i-N: 2*i;
+        }  else {
+            k = linked_cb[i];
         }
 
         FLOAT1 delta = 0;
@@ -242,10 +265,8 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
 
         INT1 nn;                             // Short range diff
         // FIXME: Neighbor idx array
-        if(((nn = k - XNN)+1)%Lx == 0) nn += this->Lx;
-        delta += Jx*bs(sc[nn]);
-        if(((nn = k + XNN)-1)%Lx == Lx-1) nn -= this->Lx;
-        delta += Jx*bs(sc[nn]);
+        delta += Jx*bs(sc[linked_ln[nn]]);
+        delta += Jx*bs(sc[linked_ln[nn]]);
 
         delta *= 2*bs(sc[k]);
         this->Total_Step++;

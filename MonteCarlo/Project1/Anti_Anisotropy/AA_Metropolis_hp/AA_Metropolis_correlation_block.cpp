@@ -124,7 +124,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         /*******Calculate Magnetizaition and Specific Heat.*********/
         model.MV[cBin] = model.res[0];
         model.CV[cBin] = (model.BetaV[cBin]*model.BetaV[cBin])*(model.res[4]-model.res[3]*model.res[3]);
-        model.BV[cBin] = 0.5*(3-model.res[4]/(model.res[3]*model.res[3]));
+        model.BV[cBin] = 0.5*(3-model.res[2]/(model.res[1]*model.res[1]));
         /***********************************************************/
 
         /*******Calculate Correlation.*********/
@@ -196,9 +196,16 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     modelW.CloseNewFile();
     /******************************************************/
 
+    string cor_idx = "idx,temperture,cor\n";
+    for(int i = 0; i < kN; i++){
+        cor_idx += to_string(i) + ',';
+    }
+    cor_idx.pop_back();
+    cor_idx += '\n';
+
     /***********Save the result of the Correlation**********/
     Writer modelW2 = Writer(kFilename+"_corres");
-    modelW2.WriteLine("idx,temperture,cor\n");
+    modelW2.WriteLine(cor_idx);
     for(int i = 0; i < kBin; i++)
         modelW2.WriteLine(result_to_file_cor.at(i));
     modelW2.CloseNewFile();
@@ -206,7 +213,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
     /***********Save the result of the Correlation**********/
     Writer modelW3 = Writer(kFilename+"_corerr");
-    modelW3.WriteLine("idx,temperture,cor\n");
+    modelW3.WriteLine(cor_idx);
     for(int i = 0; i < kBin; i++)
         modelW3.WriteLine(result_to_file_cor_err.at(i));
     modelW3.CloseNewFile();

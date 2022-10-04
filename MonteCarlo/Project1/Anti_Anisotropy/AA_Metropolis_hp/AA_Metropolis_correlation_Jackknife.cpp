@@ -32,7 +32,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
     Model model = Model(args);
 
-    FLOAT1 MM, HH;
+    FLOAT1 MM, HH, MM_noAbs;
     FLOAT1 mcs_i = 1/FLOAT1(mcs);
     FLOAT1 kNi   = 1/FLOAT1(kN);
     FLOAT1 kNi2  = kNi*kNi;
@@ -66,11 +66,14 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         int blocks = mcs/block_size;
         FLOAT1 bsi = 1/(long double) block_size;
 
+        MM_noAbs = 0;
+
         vector<FLOAT2> Block_MM(blocks);
         vector<FLOAT2> Block_MM2(blocks);
         vector<FLOAT2> Block_MM4(blocks);
         vector<FLOAT2> Block_HH(blocks);
         vector<FLOAT2> Block_HH2(blocks);
+        vector<FLOAT2> Block_MM_noAbs(blocks);
         vector<FLOAT2> cor_err(kN);
         vector<INT2>   Block_cor_sum(blocks*kN);
 
@@ -80,6 +83,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             INT2 blocksum_MM4   = 0;
             FLOAT2 blocksum_HH  = 0;
             FLOAT2 blocksum_HH2 = 0;
+
+            INT2 blocksum_MM_noAbs = 0;
 
             for(int k = 0; k < block_size; k++){
                 model.Calculate();
@@ -94,6 +99,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
                 blocksum_HH   += HH;
                 blocksum_HH2  += HH*HH;
 
+                blocksum_MM_noAbs = model.sigma;
+
                 model.CalculateCorrelation();
                 // model.CalculateCorrelationStaggered();
                 for(int ii = 0; ii < kN; ii++)
@@ -106,6 +113,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             Block_HH[bidx]  = blocksum_HH *bsi*kNir;
             Block_HH2[bidx] = blocksum_HH2*bsi*kNi;
 
+            Block_MM_noAbs[bidx] = blocksum_MM_noAbs*bsi*kNi;
+
             for(int ii = 0; ii < kN; ii++)
                 cor_sum[ii] += Block_cor_sum[bidx*kN + ii];
 
@@ -114,22 +123,25 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             model.res[2] += Block_MM4[bidx];         // = <m^4>
             model.res[3] += Block_HH[bidx];          // = <E>/sqrt(N)
             model.res[4] += Block_HH2[bidx];         // = <E^2>/N
+            MM_noAbs += Block_MM_noAbs[bidx];         // = <E^2>/N
         }
 
         for(int j = 0; j < 5; j++)
             model.res[j] /= (FLOAT1) blocks;  // average of blocks
-
+        FLOAT1 MM_noAbsf =  MM_noAbs/(FLOAT1) blocks;
         /***********************************************************/
 
         /*******Calculate Magnetizaition and Specific Heat.*********/
         model.MV[cBin] = model.res[0];
         model.CV[cBin] = (model.BetaV[cBin]*model.BetaV[cBin])*(model.res[4]-model.res[3]*model.res[3]);
-        model.BV[cBin] = 0.5*(3-model.res[4]/(model.res[3]*model.res[3]));
+        model.BV[cBin] = 0.5*(3-model.res[2]/(model.res[1]*model.res[1]));
         /***********************************************************/
 
         /*******Calculate Correlation.*********/
-        for(int j = 0; j < kN; j++)
+        for(int j = 0; j < kN; j++){
             cor_avg[j] = (FLOAT2)(2*cor_sum[j]-mcs)/mcs;
+            cor_avg[j] -= MM_noAbsf*MM_noAbsf;
+        }
         /***********************************************************/
 
         /*******Calculate Jackknife Error.*********/
@@ -202,9 +214,16 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     modelW.CloseNewFile();
     /******************************************************/
 
+    string cor_idx = "idx,temperture,cor\n";
+    for(int i = 0; i < kN; i++){
+        cor_idx += to_string(i) + ',';
+    }
+    cor_idx.pop_back();
+    cor_idx += '\n';
+
     /***********Save the result of the Correlation**********/
     Writer modelW2 = Writer(kFilename+"_corres");
-    modelW2.WriteLine("idx,temperture,cor\n");
+    modelW2.WriteLine(cor_idx);
     for(int i = 0; i < kBin; i++)
         modelW2.WriteLine(result_to_file_cor.at(i));
     modelW2.CloseNewFile();
@@ -212,7 +231,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
     /***********Save the result of the Correlation**********/
     Writer modelW3 = Writer(kFilename+"_corerr");
-    modelW3.WriteLine("idx,temperture,cor\n");
+    modelW3.WriteLine(cor_idx);
     for(int i = 0; i < kBin; i++)
         modelW3.WriteLine(result_to_file_cor_err.at(i));
     modelW3.CloseNewFile();

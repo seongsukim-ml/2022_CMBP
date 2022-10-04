@@ -43,8 +43,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         // Output data
         // 0: <m>, 1: <m^2>, 2: <m^4>, 3: <E>/sqrt(N), 4: <E^2>/N
         model.res = vector<FLOAT1>(5,0);
-        vector<INT2>   cor_sum(kN);
-        vector<FLOAT2> cor_avg(kN);
+        vector<INT2>   cor_short_sum(kN);
+        vector<FLOAT2> cor_short_avg(kN);
 
         equil_time = equil_time_base;
         // if(model.TV[i]<=2.4 || model.TV[i]>=2.0) equil_time =1000;
