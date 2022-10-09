@@ -44,8 +44,10 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         // Output data
         // 0: <m>, 1: <m^2>, 2: <m^4>, 3: <E>/sqrt(N), 4: <E^2>/N
         model.res = vector<FLOAT1>(5,0);
-        vector<INT2>   cor_sum(kN);
-        vector<FLOAT2> cor_avg(kN);
+        vector<FLOAT2> cor_short_sum(kN);
+        vector<FLOAT2> cor_short_avg(kN);
+        vector<FLOAT2> cor_long_sum(kN);
+        vector<FLOAT2> cor_long_avg(kN);
 
         equil_time = equil_time_base;
         // if(model.TV[i]<=2.4 || model.TV[i]>=2.0) equil_time =1000;
@@ -74,8 +76,10 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         vector<FLOAT2> Block_HH(blocks);
         vector<FLOAT2> Block_HH2(blocks);
         vector<FLOAT2> Block_MM_noAbs(blocks);
-        vector<FLOAT2> cor_err(kN);
-        vector<INT2>   Block_cor_sum(blocks*kN);
+        vector<FLOAT2> cor_short_err(kN);
+        vector<FLOAT2> cor_long_err(kN);
+        vector<INT2>   Block_cor_short_sum(blocks*kN);
+        vector<INT2>   Block_cor_long_sum(blocks*kN);
 
         for(int bidx = 0; bidx < blocks; bidx++){
             INT2 blocksum_MM    = 0;
@@ -83,7 +87,6 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             INT2 blocksum_MM4   = 0;
             FLOAT2 blocksum_HH  = 0;
             FLOAT2 blocksum_HH2 = 0;
-
             INT2 blocksum_MM_noAbs = 0;
 
             for(int k = 0; k < block_size; k++){
@@ -98,14 +101,14 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
                 blocksum_MM4  += MM*MM*MM*MM;
                 blocksum_HH   += HH;
                 blocksum_HH2  += HH*HH;
-
-                blocksum_MM_noAbs = model.sigma;
+                blocksum_MM_noAbs += model.sigma;
 
                 model.CalculateCorrelation();
                 // model.CalculateCorrelationStaggered();
-                for(int ii = 0; ii < kN; ii++)
-                    Block_cor_sum[bidx*kN + ii] += model.cor[ii];
-                    // cor_sum[ii] += model.cor_stag[ii];
+                for(int ii = 0; ii < kN; ii++){
+                    Block_cor_long_sum[bidx*kN + ii]  += model.cor_long[ii];
+                    Block_cor_short_sum[bidx*kN + ii] += model.cor_short[ii];
+                }
             }
             Block_MM[bidx]  = blocksum_MM *bsi*kNi;
             Block_MM2[bidx] = blocksum_MM2*bsi*kNi2;
@@ -115,8 +118,10 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
             Block_MM_noAbs[bidx] = blocksum_MM_noAbs*bsi*kNi;
 
-            for(int ii = 0; ii < kN; ii++)
-                cor_sum[ii] += Block_cor_sum[bidx*kN + ii];
+            for(int ii = 0; ii < kN; ii++){
+                cor_long_sum[ii]  += Block_cor_long_sum[bidx*kN + ii];
+                cor_short_sum[ii] += Block_cor_short_sum[bidx*kN + ii];
+            }
 
             model.res[0] += Block_MM[bidx];          // = <m>
             model.res[1] += Block_MM2[bidx];         // = <m^2>
@@ -139,8 +144,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
         /*******Calculate Correlation.*********/
         for(int j = 0; j < kN; j++){
-            cor_avg[j] = (FLOAT2)(2*cor_sum[j]-mcs)/mcs;
-            cor_avg[j] -= MM_noAbsf*MM_noAbsf;
+            cor_long_avg[j] = (FLOAT2)(cor_long_sum[j])/blocks/block_size-MM_noAbsf*MM_noAbsf;
+            cor_short_avg[j] = (FLOAT2)(cor_short_sum[j])/blocks/block_size-MM_noAbsf*MM_noAbsf;
         }
         /***********************************************************/
 
@@ -163,18 +168,20 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             FLOAT2 BBtemp = 0.5*(3-MM4temp/(MM2temp*MM2temp));
             BBerr += (BBtemp-model.BV[cBin])*(BBtemp-model.BV[cBin]);
             for(int ii = 0; ii < kN; ii++){
-                FLOAT2 cor_temp = (2*(cor_sum[ii]-Block_cor_sum[bidx*kN + ii])-(mcs-block_size))/(FLOAT2)(mcs-block_size);
-                cor_err[ii] += (cor_avg[ii]-cor_temp) * (cor_avg[ii]-cor_temp);
+                FLOAT2 cor_long_temp = (cor_long_sum[ii]-Block_cor_long_sum[bidx*kN + ii])/(FLOAT2)(mcs-block_size)-MM_noAbsf*MM_noAbsf;
+                cor_long_err[ii] += (cor_long_avg[ii]-cor_long_temp) * (cor_long_avg[ii]-cor_long_temp);
+                FLOAT2 cor_short_temp = (cor_short_sum[ii]-Block_cor_short_sum[bidx*kN + ii])/(FLOAT2)(mcs-block_size)-MM_noAbsf*MM_noAbsf;
+                cor_short_err[ii] += (cor_short_avg[ii]-cor_short_temp) * (cor_short_avg[ii]-cor_short_temp);
             }
         }
         MMerr = pow(MMerr,0.5);
         CCerr = pow(CCerr,0.5);
         BBerr = pow(BBerr,0.5);
         for(int ii = 0; ii < kN; ii++){
-            cor_err[ii] = pow(cor_err[ii],0.5);
+            cor_long_err[ii] = pow(cor_long_err[ii],0.5);
+            cor_short_err[ii] = pow(cor_short_err[ii],0.5);
         }
         /***********************************************************/
-
 
         cout <<"                         ";
         cout << left << setw(8) << model.MV[cBin] << "  " << left << setw(12) << model.CV[cBin] << "|| ";
@@ -191,7 +198,14 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         // correlation result save
         string result2 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
         for(int j = 0; j < kN; j++){
-            result2 = result2 + to_string(cor_avg[j]) + ",";
+            result2 = result2 + to_string(cor_long_avg[j]) + ",";
+        }
+        result2.pop_back();
+        result_to_file_cor.push_back(result2 + "\n");
+
+        result2 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
+        for(int j = 0; j < kN; j++){
+            result2 = result2 + to_string(cor_short_avg[j]) + ",";
         }
         result2.pop_back();
         result_to_file_cor.push_back(result2 + "\n");
@@ -199,7 +213,14 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         // correlation err result save
         string result3 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
         for(int j = 0; j < kN; j++){
-            result3 = result3 + to_string(cor_err[j]) + ",";
+            result3 = result3 + to_string(cor_long_err[j]) + ",";
+        }
+        result3.pop_back();
+        result_to_file_cor_err.push_back(result3 + "\n");
+
+        result3 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
+        for(int j = 0; j < kN; j++){
+            result3 = result3 + to_string(cor_short_err[j]) + ",";
         }
         result3.pop_back();
         result_to_file_cor_err.push_back(result3 + "\n");
@@ -214,7 +235,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     modelW.CloseNewFile();
     /******************************************************/
 
-    string cor_idx = "idx,temperture,cor\n";
+    string cor_idx = "idx,temperture,cor,";
     for(int i = 0; i < kN; i++){
         cor_idx += to_string(i) + ',';
     }
@@ -224,7 +245,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     /***********Save the result of the Correlation**********/
     Writer modelW2 = Writer(kFilename+"_corres");
     modelW2.WriteLine(cor_idx);
-    for(int i = 0; i < kBin; i++)
+    for(int i = 0; i < 2*kBin; i++)
         modelW2.WriteLine(result_to_file_cor.at(i));
     modelW2.CloseNewFile();
     /******************************************************/
@@ -232,7 +253,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     /***********Save the result of the Correlation**********/
     Writer modelW3 = Writer(kFilename+"_corerr");
     modelW3.WriteLine(cor_idx);
-    for(int i = 0; i < kBin; i++)
+    for(int i = 0; i < 2*kBin; i++)
         modelW3.WriteLine(result_to_file_cor_err.at(i));
     modelW3.CloseNewFile();
     /******************************************************/

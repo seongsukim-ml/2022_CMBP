@@ -1,4 +1,4 @@
-#include "AA_Metropolis_hp.hpp"
+#include "AA_Metropolis_hp_heatbath.hpp"
 #include "../../../headers/Writer.hpp"
 #include <iostream>
 #include <iomanip>

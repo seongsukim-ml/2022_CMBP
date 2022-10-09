@@ -84,6 +84,7 @@ class AA_Metropolis{
 
         // short* sc; // Square lattice configuration of 2D Ising model
         vector<INT8> sc;
+        vector<FLOAT1> heatbath;
         // N size of correation result vector: cor[n] is correlation btw 0th site spin and nth spin;
         float* cor_long;
         float* cor_short;
@@ -119,6 +120,7 @@ class AA_Metropolis{
         void Calculate(INT1 _n = 0,bool Random = true);
         void IterateUntilEquilibrium(INT1 equil_time,bool random = true);
         void CalculateCorrelation();
+        void Heatbath_Measure();
         // void CalculateCorrelationStaggered();
 };
 
@@ -127,6 +129,8 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
     this-> isTinf = isTinf;
     // this-> sc = new short[N];
     this-> sc        = vector<INT8>(N,1);
+    this-> heatbath  = vector<FLOAT1>(N);
+
     this-> cor_long  = new float[N];
     this-> cor_short = new float[N];
     this-> sign      = vector<INT8>(N);
@@ -153,7 +157,7 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
 
     for(int i = 0; i < N; i++){
         int k;
-        if(N %2 == 0){ // N % 2 == 0
+        if(N % 2 == 0){ // N % 2 == 0
             k = 2*i;
             if(k < N) k = (INT1(k/Lx))%2 == 0 ? k+1 : k;
             else k = (INT1(k/Lx))%2 == 0 ? k-N : k-N+1;
@@ -219,6 +223,7 @@ void AA_Metropolis::Initialize(FLOAT1 beta){
     cur_beta = beta;
 
     this->Measure();
+    Heatbath_Measure();
 }
 
 void AA_Metropolis::Measure(){ //O(N^2)
@@ -232,7 +237,7 @@ void AA_Metropolis::Measure(){ //O(N^2)
         for(j = i+Lx; j < N; j+=Lx) // y 방향 long range 계산
             partial_sum += e2d.pi_ij_1D(i,j)*sc[j];
         partial_sum *= Jy;
-        if(i%Lx != Lx-1) // x 방향 short range 계산
+        if(i%Lx != Lx-1) // x 방향 short ragne 계산
             partial_sum += Jx*sc[i+1];
         else
             partial_sum += Jx*sc[i+1-Lx];
@@ -248,45 +253,89 @@ void AA_Metropolis::Measure(){ //O(N^2)
     this->staggered = staggered;
 }
 
+void AA_Metropolis::Heatbath_Measure(){ //O(N^2)
+    INT1 i, j;
+    FLOAT1 HH, result = 0;
+    // cout << e2d.pi_ij(0,56) << '\n';
+    for(i = 0; i < N; i++){
+        FLOAT1 partial_sum  = 0;
+
+        for(int jj = i%Lx; jj < N; jj+=Lx)  // Long range diff
+            partial_sum += e2d.pi_ij_1D(jj,i)*sc[jj];
+        partial_sum *= Jy;
+
+        partial_sum += Jx*(sc[linked_ln[i]] + sc[linked_rn[i]]);
+        // partial_sum *= 2*sc[i];
+        heatbath[i] = partial_sum;
+    }
+}
+
 void AA_Metropolis::Measure_fast(){
     // FLOAT1 res[] = {HH,sigma,staggered};
     // return vector<FLOAT1>(res,res +sizeof(res)/sizeof(res[0]));
     return; // do nothing
 }
 
+// void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
+//     INT1 i, k, n;
+//     // n = !_n ? (this->N) : _n;
+//     n = N;
+//     for(i = 0; i < n; i++){
+//         // // Sweep Randomly
+//         // if(Random){ // 골고루 분포되어있는 랜덤을 찾아보면 쓸 수 있음
+//         //     k = (this->N)*dis(gen);
+//         // // Sweep Sequential
+//         // } else {
+//         //     k = linked_cb[i];
+//         // }
+//         k = linked_cb[i];
+
+
+//         FLOAT1 delta = 0;
+//         // FIXME: Linked list
+//         for(INT1 jj = k%Lx; jj < N; jj+=Lx)  // Long range diff
+//             delta += e2d.pi_ij_1D(jj,k)*sc[jj]; // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
+//         delta *= Jy;
+//                                              // Short range diff
+//         delta += Jx*(sc[linked_ln[k]]+sc[linked_rn[k]]);
+
+//         delta *= 2*sc[k];
+//         this->Total_Step++;
+
+//         // if((delta <= 0) || (dis(gen) < Prob(delta))){
+//         if((delta <= 0) || (logl(dis(gen)) < -cur_beta*delta)){
+//             this->Fliped_Step++;
+//             sc[k] = -sc[k];
+//             this->sigma     += 2*(sc[k]);
+//             this->staggered += 2*(sc[k]*sign[k]);
+//             this->HH += delta;
+//         }
+//     }
+// }
+
 void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
     INT1 i, k, n;
     // n = !_n ? (this->N) : _n;
     n = N;
     for(i = 0; i < n; i++){
-        // Sweep Randomly
-        // if(Random){ // 골고루 분포되어있는 랜덤을 찾아보면 쓸 수 있음
-        //     k = (this->N)*dis(gen);
-        // // Sweep Sequential
-        // } else {
-        //     k = linked_cb[i];
-        // }
         k = linked_cb[i];
 
-
-        FLOAT1 delta = 0;
-        // FIXME: Linked list
-        for(INT1 jj = k%Lx; jj < N; jj+=Lx)  // Long range diff
-            delta += Jy*e2d.pi_ij_1D(jj,k)*sc[jj]; // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
-
-                                             // Short range diff
-        delta += Jx*(sc[linked_ln[k]]+sc[linked_rn[k]]);
-
-        delta *= 2*sc[k];
-        this->Total_Step++;
+        FLOAT1 delta = 2 * heatbath[k] * sc[k];
+        Total_Step++;
 
         // if((delta <= 0) || (dis(gen) < Prob(delta))){
-        if((delta <= 0) || (dis(gen) < Prob(delta))){
+        if((delta <= 0) || (logl(dis(gen)) < -cur_beta*delta)){
             this->Fliped_Step++;
             sc[k] = -sc[k];
             this->sigma     += 2*(sc[k]);
             this->staggered += 2*(sc[k]*sign[k]);
             this->HH += delta;
+            // O(sqrt(N))
+            for(INT1 jj = k%Lx; jj < N; jj+=Lx){
+                heatbath[jj] += Jy*e2d.pi_ij_1D(jj,k)*2*sc[k];
+            }  // Long range diff
+            heatbath[linked_ln[k]] += Jx*2*sc[k];
+            heatbath[linked_rn[k]] += Jx*2*sc[k];
         }
     }
 }

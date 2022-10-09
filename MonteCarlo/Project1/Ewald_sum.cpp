@@ -25,12 +25,12 @@ double pi = 3.1415926539;
 
 // Periodic boundary condition
 class ewald_ND{
-    
+
     public:
         int d; // Dimension of the Ewald model.. but it looks useless
         double alpha; // alpha is "d + sigma" (overall inverse power)
         double kappa;
-        
+
         vector<int> L; // Lattice size of each edge L[0] = Lx, L[1] = Ly
 
         ewald_ND(){};

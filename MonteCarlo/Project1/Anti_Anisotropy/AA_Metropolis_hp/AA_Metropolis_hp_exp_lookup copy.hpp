@@ -31,7 +31,7 @@
     typedef int32_t INT1;
     typedef int64_t INT2;
     typedef int16_t INT8;
-    typedef double FLOAT1;
+    typedef long double FLOAT1;
     typedef long double FLOAT2;
 #endif
 // static random_device rd;  // Will be used to obtain a seed for the random number engine
@@ -44,11 +44,14 @@ static random_device rd;  // Will be used to obtain a seed for the random number
 static long unsigned int seed = rd();
 // vector<int> seeds(16);
 static mt19937 gen(seed); // Standard mersenne_twister_engine seeded with time()
-static uniform_real_distribution<long double> dis(0.0, 1.0);
+static uniform_real_distribution<> dis(0.0, 1.0);
 static bernoulli_distribution bern(0.5);
 
 //In 2D Ising model => 2/log(1+sqrt(2))
 // const double T_CRIT = 2.269185;
+
+const int nidx = 40000000;
+long double exp_lookup[nidx];
 
 class AA_Metropolis{
 
@@ -120,6 +123,7 @@ class AA_Metropolis{
         void IterateUntilEquilibrium(INT1 equil_time,bool random = true);
         void CalculateCorrelation();
         // void CalculateCorrelationStaggered();
+        map<FLOAT2,INT2> cnt;
 };
 
 AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FLOAT1 Jy, FLOAT1 alpha, FLOAT1 Tsrt, FLOAT1 Tfin, bool isTinf)
@@ -153,7 +157,7 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
 
     for(int i = 0; i < N; i++){
         int k;
-        if(N %2 == 0){ // N % 2 == 0
+        if(N & 1){ // N % 2 == 0
             k = 2*i;
             if(k < N) k = (INT1(k/Lx))%2 == 0 ? k+1 : k;
             else k = (INT1(k/Lx))%2 == 0 ? k-N : k-N+1;
@@ -198,9 +202,25 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
 AA_Metropolis::AA_Metropolis(vector<FLOAT1> &args):
 AA_Metropolis(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],args[9]){}
 
+void CalcProbLookUp(){
+    long double k = 0;
+    long double inidx = (long double)20/nidx;
+    for(int i = 0; i < nidx; i++){
+        exp_lookup[i] = expl(k);
+        k -= inidx;
+    }
+}
+
 FLOAT2 AA_Metropolis::Prob(FLOAT1 delta){
     // Look Up table
-    return expl(-this->cur_beta*delta);
+    // return expl(-this->cur_beta*delta);
+    FLOAT1 cur = -this->cur_beta*delta;
+    if(cur < -20) return 0;
+    else{
+        // cout << exp_lookup[int(-cur * 2000000)] << '\n';
+        // cout << expl(cur) << '\n';
+        return exp_lookup[int(-cur * 2000000)];
+    }
 }
 
 void AA_Metropolis::Initialize(FLOAT1 beta){
@@ -232,7 +252,7 @@ void AA_Metropolis::Measure(){ //O(N^2)
         for(j = i+Lx; j < N; j+=Lx) // y 방향 long range 계산
             partial_sum += e2d.pi_ij_1D(i,j)*sc[j];
         partial_sum *= Jy;
-        if(i%Lx != Lx-1) // x 방향 short range 계산
+        if(i%Lx != Lx-1) // x 방향 short ragne 계산
             partial_sum += Jx*sc[i+1];
         else
             partial_sum += Jx*sc[i+1-Lx];
@@ -259,7 +279,7 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
     // n = !_n ? (this->N) : _n;
     n = N;
     for(i = 0; i < n; i++){
-        // Sweep Randomly
+        // // Sweep Randomly
         // if(Random){ // 골고루 분포되어있는 랜덤을 찾아보면 쓸 수 있음
         //     k = (this->N)*dis(gen);
         // // Sweep Sequential
@@ -280,7 +300,6 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
         delta *= 2*sc[k];
         this->Total_Step++;
 
-        // if((delta <= 0) || (dis(gen) < Prob(delta))){
         if((delta <= 0) || (dis(gen) < Prob(delta))){
             this->Fliped_Step++;
             sc[k] = -sc[k];
@@ -297,12 +316,11 @@ void AA_Metropolis::IterateUntilEquilibrium(INT1 equil_time,bool random){
 }
 
 void AA_Metropolis::CalculateCorrelation(){
-    memset(cor_short,0,sizeof(cor_short));
-    memset(cor_long,0,sizeof(cor_long));
-    // for(int i = 0; i < N; i++)
-    //     cor_short[i] = 0;
-    // for(int i = 0; i < N; i++)
-    //     cor_long[i] = 0;
+    // xor 연산이 ~순서에 무관하기 때문에, bit1, bit0를 다르게 넣어줌
+    for(int i = 0; i < N; i++)
+        cor_short[i] = 0;
+    for(int i = 0; i < N; i++)
+        cor_long[i] = 0;
 
     for(int i = 0; i < Ly; i++){
         for(int j = 0; j < Lx; j++){
