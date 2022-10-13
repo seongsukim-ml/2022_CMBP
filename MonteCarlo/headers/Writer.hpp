@@ -107,9 +107,9 @@ void Writer::MakeDirectory(){
 
 void Writer::FindNextFileNum(int filenum = 1){
     ifstream f(this-> new_file_name);
-    int filenum = filenum;
+    int cf = filenum;
     while(true){
-        this-> new_file_name = this->file_name + "_" + to_string(filenum++) + ".csv";
+        this-> new_file_name = this->file_name + "_" + to_string(cf++) + ".csv";
         ifstream f(this-> new_file_name);
         if(!f.good()) break;
     }
@@ -152,7 +152,7 @@ class FooWriter : Writer {
         string directory_name;
         void MakeDirectory(){}
         // FooWriter(string filename, string directory_name = "Result") : Writer(true) {}
-        FooWriter(string filename, string directory_name = "Result") : Writer(filename,directory_name) {}
+        FooWriter(string filename, int filenum = 1, string directory_name = "Result") : Writer(filename,filenum,directory_name) {}
         void FindNextFileNum(){}
         void OpenNewFile(){}
         void WriteLine(string contents){}
