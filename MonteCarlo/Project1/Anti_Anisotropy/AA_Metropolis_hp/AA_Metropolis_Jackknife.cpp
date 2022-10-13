@@ -1,7 +1,8 @@
 #include "AA_Metropolis_program_header_hb.hpp"
 
 // arguments list that helps to pass the args to model
-vector<string> result_to_file = vector<string>();
+vector<vector<FLOAT2>> result_to_file = vector<vector<FLOAT2>>();
+// vector<string> result_to_file = vector<string>();
 vector<string> result_to_file_cor = vector<string>();
 vector<string> result_to_file_cor_err = vector<string>();
 
@@ -64,8 +65,10 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         cout << '\n';
 
         /***********Monte Carlo Step and Caculate the data***********/
-        int block_size = 10000;
-        int blocks = mcs/block_size;
+        // int block_size = 10000;
+        // int blocks = mcs/block_size;
+        int blocks = 100;
+        int block_size = mcs/blocks;
         FLOAT1 bsi = 1/(long double) block_size;
 
         MM_noAbs = 0;
@@ -152,9 +155,11 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             FLOAT2 BBtemp = 0.5*(3-MM4temp/(MM2temp*MM2temp));
             BBerr += (BBtemp-model.BV[cBin])*(BBtemp-model.BV[cBin]);
         }
-        MMerr = pow(MMerr,0.5);
-        CCerr = pow(CCerr,0.5);
-        BBerr = pow(BBerr,0.5);
+        MMerr  = pow(MMerr,0.5);
+        MM2err = pow(MM2err,0.5);
+        MM4err = pow(MM4err,0.5);
+        CCerr  = pow(CCerr,0.5);
+        BBerr  = pow(BBerr,0.5);
         /***********************************************************/
 
         cout <<"                         ";
@@ -162,11 +167,17 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         cout << left << setw(14) << model.Fliped_Step << "  " << left << setw(10) << model.Total_Step << endl;
 
         // Standard result save
-        string result = to_string(cBin) + "," + to_string(model.TV[cBin]) + "," + to_string(model.MV[cBin]) + "," + to_string(model.CV[cBin]) + ",";
-        result = result + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
-        result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + "," + to_string(model.BV[cBin]) + ",";
-        result = result + to_string(MMerr) + "," + to_string(CCerr) + "," + to_string(BBerr) + ",";
-        result = result + to_string(MM2err) + "," + to_string(MM4err) + "\n";
+        // string result = to_string(cBin) + "," + to_string(model.TV[cBin]) + "," + to_string(model.MV[cBin]) + "," + to_string(model.CV[cBin]) + ",";
+        // result = result + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
+        // result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + "," + to_string(model.BV[cBin]) + ",";
+        // result = result + to_string(MMerr) + "," + to_string(CCerr) + "," + to_string(BBerr) + ",";
+        // result = result + to_string(MM2err) + "," + to_string(MM4err) + "\n";
+
+        vector<FLOAT2> result = {
+            FLOAT1(cBin),model.TV[cBin],model.MV[cBin],model.CV[cBin],
+            model.res[0],model.res[1],model.res[2],model.res[3],model.res[4],
+            model.BV[cBin], MMerr, CCerr, BBerr, MM2err, MM4err
+            };
 
         result_to_file.push_back(result);
     }
@@ -174,6 +185,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     kFilename += "_Jackknife";
     /***********Save the result of the Calculation**********/
     Writer modelW = Writer(kFilename);
+    // vector<string> ={"idx","temperature","stag_mag",}
     modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L,Binder,MMerr,CCerr,BBerr,MM2err,MM4err\n");
     for(int i = 0; i < kBin; i++)
         modelW.WriteLine(result_to_file.at(i));

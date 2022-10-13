@@ -6,6 +6,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <string>
+#include <vector>
 
 // Error catch
 #include <signal.h>
@@ -36,6 +37,9 @@ class Writer {
         // Writer(bool Foo){/*Intentialnally empty for FooWriter*/};
         void FindNextFileNum(int filenum);
         void OpenNewFile();
+        template<typename T>
+        void WriteLine(vector<T> contents);
+        void WriteLine(vector<string> contents);
         void WriteLine(string contents);
         void WriteLine(double contents);
         void WriteLine(long double contents);
@@ -90,6 +94,7 @@ Writer::Writer(string filename, int filenum = 1, string directory_name = "Result
     this-> FindNextFileNum(filenum);
     this-> OpenNewFile();
     cout << "Saving Start: " << this-> new_file_name << "\n";
+    myfile.precision(10);
 }
 // Writer::~Writer(){
 //     this-> CloseNewFile();
@@ -118,6 +123,22 @@ void Writer::FindNextFileNum(int filenum = 1){
 
 void Writer::OpenNewFile(){
     this->myfile.open(this->new_file_name);
+}
+template<typename T>
+void Writer::WriteLine(vector<T> contents){
+    // This assumes that there is no line break.
+    myfile << fixed << setw(3) << int(contents.at(0)) << ',';
+    for(int i = 1; i < contents.size()-1; i++)
+        myfile << fixed << setw(11) << contents.at(i) << ',';
+    myfile << fixed << setw(11) << contents.back() << '\n';
+}
+
+void Writer::WriteLine(vector<string> contents){
+    // This assumes that there is no line break.
+    myfile << fixed << setw(3) << contents.at(0) << ',';
+    for(int i = 1; i < contents.size()-1; i++)
+        myfile << fixed << setw(11) << contents.at(i) << ',';
+    myfile << fixed << setw(11) << contents.back() << '\n';
 }
 
 void Writer::WriteLine(string contents){

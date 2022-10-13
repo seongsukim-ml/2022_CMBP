@@ -10,7 +10,9 @@ import csv
 
 Exact_M_data, Exact_C_data = Exact_Ising_model.Exact_calc()
 
-def draw_fig1(path, plot_list = ["MM","CC"]):
+def draw_fig1(path, Lsize, plot_list = ["MM","CC"]):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     if(isinstance(path,str)):
         a = pd.read_csv(path)
     else:
@@ -18,11 +20,11 @@ def draw_fig1(path, plot_list = ["MM","CC"]):
     TT = a.iloc[:,1].values
     MM = a.loc[:,'abs(mm)'].values
     CC = a.loc[:,'specific heat'].values
-    Sus = (a.loc[:,'mm**2'].values) - MM**2
+    Sus = ((a.loc[:,'mm**2'].values)*Lsize**4 - (MM*Lsize**2)**2)
     MMerror = a.loc[:,'MMerr'].values
     CCerror = a.loc[:,'CCerr'].values
     # MMerror = np.sqrt(1/(18000-1)*abs(a.iloc[:,5].values/10000-(a.iloc[:,4].values/100)**2))
-    Suserr  = abs(a.loc[:,'MM2err'].values-abs(MM*2*MMerror))
+    Suserr  = abs(a.loc[:,'MM2err'].values**(0.5)*(Lsize**4)+abs(MM*2*MMerror*Lsize**4))
     # print(MM*2*MMerror)
 
     plt.style.use('seaborn-whitegrid')
@@ -50,6 +52,7 @@ def draw_fig1(path, plot_list = ["MM","CC"]):
     # plt.text(0.05,1.67,"Jackknife bin : 50")
     # plt.text(2.27, -0.2, '$T_c$', ha='center')
 
+    ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
     plt.legend()
     plt.ylabel('Specific heat or magnetization per spin m')
     plt.xlabel('Temperature T')
@@ -59,6 +62,8 @@ def draw_fig1(path, plot_list = ["MM","CC"]):
 def draw_multi(path_list,Lsize,Bins,Step_Size, plot_list = ["MM","CC"]):
     plt.style.use('seaborn-whitegrid')
     # plt.figure(dpi=300)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
 
     for i, data in enumerate(path_list):
         if(isinstance(data,str)):
@@ -102,6 +107,7 @@ def draw_multi(path_list,Lsize,Bins,Step_Size, plot_list = ["MM","CC"]):
     # plt.text(0.05,1.67,"Jackknife bin : 50")
     # plt.text(2.27, -0.2, '$T_c$', ha='center')
 
+    ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
     plt.ylabel('Specific heat or magnetization per spin m')
     plt.xlabel('Temperature T')
     plt.legend()
@@ -154,6 +160,8 @@ def draw_binder_FFS(path_list, Lsize, Bins, Step_Size, xliml = None, yliml = (0.
 
 def draw_binder_fig1(path, plot_list = ["BBerr"]):
     # options : "BBerr", "calc"
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     if(isinstance(path,str)):
         a = pd.read_csv(path)
     else:
@@ -175,10 +183,13 @@ def draw_binder_fig1(path, plot_list = ["BBerr"]):
         plt.plot(TT,Binder,marker=marker[0],mfc='none',markersize=5)
     # plt.axvline(x=2/np.log(1+np.sqrt(2)),c='grey',lw=1,dashes=[2,2])
 
+    ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
     plt.show()
 
 def draw_binder_FSS_fig1(path,Tc, Lsize,nu = 1,plot_list = ["BBerr"]):
     # options : "BBerr", "calc"
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     if(isinstance(path,str)):
         a = pd.read_csv(path)
     else:
@@ -206,7 +217,7 @@ def draw_binder_FSS_fig1(path,Tc, Lsize,nu = 1,plot_list = ["BBerr"]):
 
     # plt.axvline(x=2/np.log(1+np.sqrt(2)),c='grey',lw=1,dashes=[2,2])
 
-
+    ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
     plt.show()
 
 ######################################
@@ -292,7 +303,6 @@ def file_name_compare(a,b):
         return -1
 
 
-
 def parsing_helper_cor(path):
     parsing_dict = {}
     parsing_dict_cor = {}
@@ -321,20 +331,61 @@ def refine_parsing_dict(parsing_dict):
     for key in parsing_dict.keys():
         all_ls = parsing_dict[key]
 
-def merge_csv(ls):
+# def merge_csv(ls,mcs=[]):
+#     res = ls[0].copy()
+#     # res = pd.DataFrame(index=ls[0].index,columns=ls[0].columns)
+#     # res.fillna(0)
+#     # for col in res.columns:
+#         # df[col].values[:] = 0
+
+#     for col in res.columns.tolist():
+#         # print(res[col])
+#         res[col].values[:] = 0
+#         if col.find("err") == -1:
+#             for data in ls:
+#                 res[col] += (data[col]/len(ls))
+#         else:
+#             for data in ls:
+#                 res[col] += (data[col]/len(ls))/len(ls)**(0.5)
+#     return res
+
+def merge_csv(ls,mcs=[]):
     res = ls[0].copy()
     # res = pd.DataFrame(index=ls[0].index,columns=ls[0].columns)
     # res.fillna(0)
     # for col in res.columns:
         # df[col].values[:] = 0
 
-    for col in res.columns.tolist():
-        # print(res[col])
-        res[col].values[:] = 0
-        if col.find("err") == -1:
-            for data in ls:
-                res[col] += (data[col]/len(ls))
-        else:
-            for data in ls:
-                res[col] += (data[col]/len(ls))/len(ls)**(0.5)
-    return res
+    if not mcs:
+        for col in res.columns.tolist():
+            # print(res[col])
+            res[col].values[:] = 0
+            if col.find("err") == -1:
+                for data in ls:
+                    res[col] += (data[col]/len(ls))
+            else:
+                for data in ls:
+                    res[col] += ((data[col])/len(ls))**2
+                res[col] **= 0.5
+        return res
+    else :
+        sum = 0
+        for mm in mcs: sum += mm
+        for col in res.columns.tolist():
+            # print(res[col])
+            res[col].values[:] = 0
+            if col.find("err") == -1:
+                for data, mm in zip(ls,mcs):
+                    res[col] += (mm*data[col]/sum)
+            else:
+                for data, mm in zip(ls,mcs):
+                    res[col] += (mm*(data[col])/sum)**2
+                res[col] **= 0.5
+        return res
+
+def merge_dataset(ls, Lsize, Bins, mcs, alpha_list):
+    Luniq = Lsize.unique()
+    idx = 0
+    res = [[],[],[],[]]
+    for ll in Luniq:
+        cnt = Lsize.count(ll)
