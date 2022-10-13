@@ -175,7 +175,6 @@ void AA_Metropolis::Initialize(FLOAT1 beta){
     // Initialize the spin configuration
     sc =  boost::dynamic_bitset<>(N);
     sc = ~sc;
-    // if(Random)
     for(INT1 i = 0; i < N; i++){
         // T = \inf start
         if(this->isTinf) this->sc[i] = bern(gen);
@@ -224,10 +223,10 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
     n = !_n ? (this->N) : _n;
     for(i = 0; i < n; i++){
         // Sweep Randomly
-        if(Random){ // 골고루 분포되어있는 랜덤을 찾아보면 쓸 수 있음
+        if(Random){
             k = (this->N)*dis(gen);
         // Sweep Sequential
-        } else if(n%2 == 0){ // FIXME: Linked list 
+        } else if(n%2 == 0){
             k = 2*i;
             if(k < N) k = (INT1(k/Lx))%2 == 0 ? k+1 : k;
             else k = (INT1(k/Lx))%2 == 0 ? k-N : k-N+1;
@@ -236,12 +235,10 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
         }
 
         FLOAT1 delta = 0;
-        // FIXME: Linked list
         for(INT1 jj = k%Lx; jj < N; jj+=Lx)  // Long range diff
             delta += Jy*e2d.pi_ij_1D(jj,k)*bs(sc[jj]); // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
 
         INT1 nn;                             // Short range diff
-        // FIXME: Neighbor idx array
         if(((nn = k - XNN)+1)%Lx == 0) nn += this->Lx;
         delta += Jx*bs(sc[nn]);
         if(((nn = k + XNN)-1)%Lx == Lx-1) nn -= this->Lx;
@@ -254,7 +251,6 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
             this->Fliped_Step++;
             sc[k] = !sc[k];
             this->sigma += 2*(bs(sc[k]));
-            // FIXME: XOR
             this->staggered +=2*(bs(sc[k])*bs(sign[k]));
             this->HH += delta;
         }

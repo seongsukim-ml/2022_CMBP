@@ -1,4 +1,4 @@
-#include "AA_Metropolis_program_header.hpp"
+#include "AA_Metropolis_program_header_hb.hpp"
 
 // arguments list that helps to pass the args to model
 vector<string> result_to_file = vector<string>();
@@ -10,13 +10,15 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     signal(SIGINT, &handler);
     if(argn >= 2){
         string Input_file = argv[1];
-        vector<FLOAT1> input = Writer::Argument_readerL(Input_file,13);
+        vector<FLOAT1> input = Writer::Argument_reader(Input_file,13);
         kLx = (INT1)input[0]; kLy = (INT1)input[1]; kN = kLx*kLy;
         kBin = (INT1)input[2]; kB = input[3]; kJx = input[4]; kJy = input[5];
         alpha = input[6]; Tsrt = input[7]; Tfin = input[8];
         isTinf = input[9]; Random = input[10];
         equil_time_base = input[11]; mcs = input[12];
     }
+    int filenum = 1; if(argn >= 3) filenum = stoi(argv[2]);
+
     // arguments list that helps to pass the args to model
     vector<FLOAT1> args = {kLx,kLy,kBin,kB,kJx,kJy,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};
 
@@ -228,7 +230,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
     kFilename += "_corJackknife";
     /***********Save the result of the Calculation**********/
-    Writer modelW = Writer(kFilename);
+    Writer modelW = Writer(kFilename, filenum);
     modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L,Binder,MMerr,CCerr,BBerr\n");
     for(int i = 0; i < kBin; i++)
         modelW.WriteLine(result_to_file.at(i));
@@ -243,7 +245,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     cor_idx += '\n';
 
     /***********Save the result of the Correlation**********/
-    Writer modelW2 = Writer(kFilename+"_corres");
+    Writer modelW2 = Writer(kFilename+"_corres", filenum);
     modelW2.WriteLine(cor_idx);
     for(int i = 0; i < 2*kBin; i++)
         modelW2.WriteLine(result_to_file_cor.at(i));
@@ -251,7 +253,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     /******************************************************/
 
     /***********Save the result of the Correlation**********/
-    Writer modelW3 = Writer(kFilename+"_corerr");
+    Writer modelW3 = Writer(kFilename+"_corerr", filenum);
     modelW3.WriteLine(cor_idx);
     for(int i = 0; i < 2*kBin; i++)
         modelW3.WriteLine(result_to_file_cor_err.at(i));

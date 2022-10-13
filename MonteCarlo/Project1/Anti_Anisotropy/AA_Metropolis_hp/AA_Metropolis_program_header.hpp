@@ -1,4 +1,4 @@
-#include "AA_Metropolis_hp.hpp"
+#include "AA_Metropolis.hpp"
 #include "../../../headers/Writer.hpp"
 #include <iostream>
 #include <iomanip>
@@ -13,10 +13,15 @@ int kBin        = 31;          /*Parameter: Change binning of temperature*/
 double kB       = 0;
 double kJx      = 1;
 double kJy      = -1;
+// double alpha    = 100;
+
+// double Tsrt = 2.22;
+// double Tfin = 2.28;
+
 double alpha    = 1.5;
 
-double Tsrt = 2.22;
-double Tfin = 2.28;
+double Tsrt = 1.78;
+double Tfin = 1.80;
 
 double isTinf = false;
 bool Random = false;

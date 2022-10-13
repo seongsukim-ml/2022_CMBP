@@ -1,4 +1,4 @@
-#include "AA_Metropolis_program_header2.hpp"
+#include "AA_Metropolis_program_header_hb.hpp"
 
 // arguments list that helps to pass the args to model
 vector<string> result_to_file = vector<string>();
@@ -76,7 +76,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             FLOAT2 blocksum_HH2 = 0;
 
             for(int k = 0; k < block_size; k++){
-                model.Calculate();
+                model.Calculate(0,false);
                 model.Measure_fast();
 
                 HH = model.HH;

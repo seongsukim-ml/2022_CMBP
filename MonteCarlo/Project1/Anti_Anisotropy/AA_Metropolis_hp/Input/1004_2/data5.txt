@@ -8,8 +8,8 @@ kJx             = 1
 kJy             = -1
 alpha           = 1.5
 
-Tsrt            = 1.793
-Tfin            = 1.797
+Tsrt            = 1.790
+Tfin            = 1.800
 
 isTinf          = 0
 Random          = 0

@@ -1,0 +1,18 @@
+kLx             = 96
+kLy             = 96
+
+kBin            = 5
+
+kB              = 0
+kJx             = 1
+kJy             = -1
+alpha           = 1.5
+
+Tsrt            = 1.795
+Tfin            = 1.795
+
+isTinf          = 0
+Random          = 0
+
+equil_time_base = 0
+mcs             = 8388608

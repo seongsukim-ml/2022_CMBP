@@ -4,24 +4,24 @@
 #include <iomanip>
 
 /***************** Parameters 1 *****************/
-const int kL          = 100;          /*Parameter: lattice size*/
+const int kL          = 16;          /*Parameter: lattice size*/
 const int kN          = kL*kL;
-const int kBin        = 25;          /*Parameter: Change binning of temperature*/
+const int kBin        = 31;          /*Parameter: Change binning of temperature*/
 const int kB          = 0;
 const int kJ          = 1;
 
 // const double Tsrt = T_CRIT*(1-0.08);
 // const double Tfin = T_CRIT*(1+0.08);
 
-const double Tsrt = 0.2;
-const double Tfin = 5;
+const double Tsrt = 2.22;
+const double Tfin = 2.28;
 
 const double isTinf = false;
 const bool Random = true;
 
-int equil_time = 1000;
+int equil_time = 10000;
 const int equil_time_base = 200;
-int mcs = 1e3;
+int mcs = 1e6;
 /***************** Parameters 1 *****************/
 
 typedef Metropolis_2D Model;

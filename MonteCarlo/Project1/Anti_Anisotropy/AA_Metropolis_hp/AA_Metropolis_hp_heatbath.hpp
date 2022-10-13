@@ -32,6 +32,7 @@
     typedef int64_t INT2;
     typedef int16_t INT8;
     typedef double FLOAT1;
+    // typedef long double FLOAT1;
     typedef long double FLOAT2;
 #endif
 // static random_device rd;  // Will be used to obtain a seed for the random number engine
@@ -40,9 +41,11 @@
 
 using namespace std;
 
-static random_device rd;  // Will be used to obtain a seed for the random number engine
-static long unsigned int seed = rd();
+// static random_device rd;  // Will be used to obtain a seed for the random number engine
+// static long unsigned int seed = rd();
 // vector<int> seeds(16);
+static long unsigned int seed = static_cast<long unsigned int>(time(0));
+
 static mt19937 gen(seed); // Standard mersenne_twister_engine seeded with time()
 static uniform_real_distribution<long double> dis(0.0, 1.0);
 static bernoulli_distribution bern(0.5);
@@ -255,7 +258,6 @@ void AA_Metropolis::Measure(){ //O(N^2)
 
 void AA_Metropolis::Heatbath_Measure(){ //O(N^2)
     INT1 i, j;
-    FLOAT1 HH, result = 0;
     // cout << e2d.pi_ij(0,56) << '\n';
     for(i = 0; i < N; i++){
         FLOAT1 partial_sum  = 0;
@@ -263,10 +265,11 @@ void AA_Metropolis::Heatbath_Measure(){ //O(N^2)
         for(int jj = i%Lx; jj < N; jj+=Lx)  // Long range diff
             partial_sum += e2d.pi_ij_1D(jj,i)*sc[jj];
         partial_sum *= Jy;
-
+        // cout << partial_sum << " ";
         partial_sum += Jx*(sc[linked_ln[i]] + sc[linked_rn[i]]);
         // partial_sum *= 2*sc[i];
         heatbath[i] = partial_sum;
+        // cout << heatbath[i] << '\n';
     }
 }
 
@@ -318,10 +321,15 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
     // n = !_n ? (this->N) : _n;
     n = N;
     for(i = 0; i < n; i++){
-        k = linked_cb[i];
-
+        if(Random){ // 골고루 분포되어있는 랜덤을 찾아보면 쓸 수 있음
+            k = (this->N)*dis(gen);
+        // Sweep Sequential
+        } else {
+            k = linked_cb[i];
+        }
         FLOAT1 delta = 2 * heatbath[k] * sc[k];
         Total_Step++;
+        // cout << delta << '\n';
 
         // if((delta <= 0) || (dis(gen) < Prob(delta))){
         if((delta <= 0) || (logl(dis(gen)) < -cur_beta*delta)){

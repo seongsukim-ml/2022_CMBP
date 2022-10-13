@@ -1,0 +1,18 @@
+kLx             = 6
+kLy             = 6
+
+kBin            = 21
+
+kB              = 0
+kJx             = 1
+kJy             = -1
+alpha           = 3
+
+Tsrt            = 2.07
+Tfin            = 2.08
+
+isTinf          = 0
+Random          = 0
+
+equil_time_base = 500000
+mcs             = 5000000

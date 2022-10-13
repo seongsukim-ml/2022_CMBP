@@ -31,7 +31,8 @@
     typedef int32_t INT1;
     typedef int64_t INT2;
     typedef int16_t INT8;
-    typedef double FLOAT1;
+    // typedef double FLOAT1;
+    typedef long double FLOAT1;
     typedef long double FLOAT2;
 #endif
 // static random_device rd;  // Will be used to obtain a seed for the random number engine
@@ -40,9 +41,10 @@
 
 using namespace std;
 
-static random_device rd;  // Will be used to obtain a seed for the random number engine
-static long unsigned int seed = rd();
+// static random_device rd;  // Will be used to obtain a seed for the random number engine
+// static long unsigned int seed = rd();
 // vector<int> seeds(16);
+static long unsigned int seed = static_cast<long unsigned int>(time(0));
 static mt19937 gen(seed); // Standard mersenne_twister_engine seeded with time()
 static uniform_real_distribution<long double> dis(0.0, 1.0);
 static bernoulli_distribution bern(0.5);
@@ -260,24 +262,24 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
     n = N;
     for(i = 0; i < n; i++){
         // Sweep Randomly
-        // if(Random){ // 골고루 분포되어있는 랜덤을 찾아보면 쓸 수 있음
-        //     k = (this->N)*dis(gen);
-        // // Sweep Sequential
-        // } else {
-        //     k = linked_cb[i];
-        // }
-        k = linked_cb[i];
+        if(Random){ // 골고루 분포되어있는 랜덤을 찾아보면 쓸 수 있음
+            k = (this->N)*dis(gen);
+        // Sweep Sequential
+        } else {
+            k = linked_cb[i];
+        }
+        // k = linked_cb[i];
 
 
         FLOAT1 delta = 0;
         // FIXME: Linked list
         for(INT1 jj = k%Lx; jj < N; jj+=Lx)  // Long range diff
-            delta += Jy*e2d.pi_ij_1D(jj,k)*sc[jj]; // 여기에 오류가 있었음 pi_ij(jj,k) 함수를 호출하고 있었음
-
+            delta += Jy*e2d.pi_ij_1D(jj,k)*sc[jj];
                                              // Short range diff
         delta += Jx*(sc[linked_ln[k]]+sc[linked_rn[k]]);
 
         delta *= 2*sc[k];
+        // cout << delta << ' ' << sc[k] << " " << k <<'\n';
         this->Total_Step++;
 
         // if((delta <= 0) || (dis(gen) < Prob(delta))){
@@ -293,7 +295,7 @@ void AA_Metropolis::Calculate(INT1 _n, bool Random){ //O(N^2)
 
 void AA_Metropolis::IterateUntilEquilibrium(INT1 equil_time,bool random){
     for(INT1 j = 0; j < equil_time; j++)
-        Calculate(0,random);
+        Calculate(0,true);
 }
 
 void AA_Metropolis::CalculateCorrelation(){

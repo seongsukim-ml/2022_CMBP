@@ -21,9 +21,9 @@ double Tfin = 2.28;
 double isTinf = false;
 bool Random = false;
 
-int equil_time_base = 1e3;
+int equil_time_base = 1e4;
 int equil_time = equil_time_base;
-int mcs = 1e4;
+int mcs = 1e5;
 /***************** (Test) Parameters 1 *****************/
 
 typedef AA_Metropolis Model;

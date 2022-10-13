@@ -32,9 +32,9 @@ class Writer {
         void MakeDirectory();
         // Wirter(string filename);
         // ~Writer();
-        Writer(string filename, string directory_name);
+        Writer(string filename, int filenum, string directory_name);
         // Writer(bool Foo){/*Intentialnally empty for FooWriter*/};
-        void FindNextFileNum();
+        void FindNextFileNum(int filenum);
         void OpenNewFile();
         void WriteLine(string contents);
         void WriteLine(double contents);
@@ -51,7 +51,7 @@ class Writer {
             for(int i = 0; i < size; i++){
                 string var_name, equal_sign;
                 mf >> var_name >> equal_sign; // Not use.
-                long double data;
+                double data;
                 mf >> data;
                 res.push_back(data);
             }
@@ -82,12 +82,12 @@ class Writer {
 //     this-> directory_name = "Result";
 // }
 
-Writer::Writer(string filename, string directory_name = "Result"){
+Writer::Writer(string filename, int filenum = 1, string directory_name = "Result"){
     this-> file_name = filename;
     this-> directory_name = directory_name;
 
     this-> MakeDirectory();
-    this-> FindNextFileNum();
+    this-> FindNextFileNum(filenum);
     this-> OpenNewFile();
     cout << "Saving Start: " << this-> new_file_name << "\n";
 }
@@ -105,9 +105,9 @@ void Writer::MakeDirectory(){
     #endif // linux
 }
 
-void Writer::FindNextFileNum(){
+void Writer::FindNextFileNum(int filenum = 1){
     ifstream f(this-> new_file_name);
-    int filenum = 1;
+    int filenum = filenum;
     while(true){
         this-> new_file_name = this->file_name + "_" + to_string(filenum++) + ".csv";
         ifstream f(this-> new_file_name);
