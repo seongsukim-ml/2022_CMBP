@@ -18,6 +18,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         isTinf = input[9]; Random = input[10];
         equil_time_base = input[11]; mcs = input[12];
     }
+    int filenum = 1; if(argn >= 3) filenum = stoi(argv[2]);
+    
     // arguments list that helps to pass the args to model
     vector<FLOAT1> args = {kLx,kLy,kBin,kB,kJx,kJy,alpha,Tsrt,Tfin,isTinf,Random,equil_time_base,mcs};
 
@@ -184,7 +186,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
     kFilename += "_Jackknife";
     /***********Save the result of the Calculation**********/
-    Writer modelW = Writer(kFilename);
+    Writer modelW = Writer(kFilename,filenum);
     // vector<string> ={"idx","temperature","stag_mag",}
     modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L,Binder,MMerr,CCerr,BBerr,MM2err,MM4err\n");
     for(int i = 0; i < kBin; i++)

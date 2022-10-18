@@ -10,6 +10,16 @@ import csv
 
 Exact_M_data, Exact_C_data = Exact_Ising_model.Exact_calc()
 
+alpha_file_name_dict = {
+                    "a=1"    :"1.000000",
+                    "a=1.5"  :"1.500000",
+                    "a=2"    :"2.000000",
+                    "a=2.5"  :"2.500000",
+                    "a=3"    :"3.000000",
+                    "a=3.5"  :"3.500000",
+                    "a=100"  :"100.000000",
+}
+
 def draw_fig1(path, Lsize, plot_list = ["MM","CC"]):
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -79,7 +89,7 @@ def draw_multi(path_list,Lsize,Bins,Step_Size, plot_list = ["MM","CC"]):
         CCerror = a.loc[:,'CCerr'].values
         # MMerror = np.sqrt(1/(18000-1)*abs(a.iloc[:,5].values/10000-(a.iloc[:,4].values/100)**2))
         Suserr  = abs(a.loc[:,'MM2err'].values-abs(MM*2*MMerror))
-        print(MM*2*MMerror)
+        # print(MM*2*MMerror)
 
         plt.style.use('seaborn-whitegrid')
         # plt.figure(dpi=300)
@@ -88,17 +98,17 @@ def draw_multi(path_list,Lsize,Bins,Step_Size, plot_list = ["MM","CC"]):
         # plt.ylim(-0.1,2)
         # plt.xlim(0,TT[-1])
         if "MM"    in plot_list:
-            plt.plot(TT,MM, lw=1, linestyle='', marker='s', markersize=5, color='b', label='magnetization',mfc='none')
+            plt.plot(TT,MM, lw=1, linestyle='', marker='s', markersize=5, label='magnetization'+str(Lsize[i]),mfc='none')
         if "CC"    in plot_list:
-            plt.plot(TT,CC,linestyle='', marker='o', markersize=5, color='orange', label='specific heat',mfc='none')
+            plt.plot(TT,CC,linestyle='', marker='o', markersize=5, label='specific heat'+str(Lsize[i]),mfc='none')
         if "Sus"   in plot_list:
-            plt.plot(TT,Sus,linestyle='', marker='o', markersize=5, color='r', label='mag susceptibility',mfc='none')
+            plt.plot(TT,Sus,linestyle='', marker='o', markersize=5, label='mag susceptibility'+str(Lsize[i]),mfc='none')
         if "MMerr" in plot_list:
-            plt.errorbar(TT,MM,yerr=MMerror, lw=1, linestyle='', marker='s', markersize=5,capsize=7, color='b', label='magnetization',mfc='none')
+            plt.errorbar(TT,MM,yerr=MMerror, lw=1, linestyle='', marker='s', markersize=5,capsize=7, label='magnetization'+str(Lsize[i]),mfc='none')
         if "CCerr" in plot_list:
-            plt.errorbar(TT,CC,yerr=CCerror,linestyle='', marker='o', markersize=5,capsize=7, color='orange' ,label='specific heat',mfc='none')
+            plt.errorbar(TT,CC,yerr=CCerror,linestyle='', marker='o', markersize=5,capsize=7 ,label='specific heat'+str(Lsize[i]),mfc='none')
         if "Suserr"   in plot_list:
-            plt.errorbar(TT,Sus,yerr=Suserr,linestyle='', marker='o', markersize=5,capsize=7, color='r', label='mag susceptibility',mfc='none')
+            plt.errorbar(TT,Sus,yerr=Suserr,linestyle='', marker='o', markersize=5,capsize=7, label='mag susceptibility'+str(Lsize[i]),mfc='none')
 
     if "exact" in plot_list:
         plt.axvline(x=2/np.log(1+np.sqrt(2)),c='grey',lw=1,dashes=[2,2])
@@ -158,6 +168,70 @@ def draw_binder_FFS(path_list, Lsize, Bins, Step_Size, xliml = None, yliml = (0.
     # plt.xlabel('$L^{1/\nu}[T-T_c]$')
     plt.show()
 
+def draw_binder_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list = ["MM","CC"]):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    marker = ["o","s","o","s","o"]
+
+    for path in path_list:
+        if(isinstance(path,str)):
+            a = pd.read_csv(path)
+        else:
+            a = path
+
+        TT = a.iloc[:,1].values
+        if "calc" in plot_list:
+            Binder = 0.5*(3-a.loc[:,"mm**4"].values/(a.loc[:,"mm**2"].values)**2)
+        else:
+            Binder = a.loc[:,'Binder'].values
+        # plt.ylim(-0.1,2)
+        # plt.xlim(1.5,4)
+        plt.style.use('seaborn-whitegrid')
+        if "BBerr" in plot_list:
+            BBerr = a.loc[:,"BBerr"].values
+            plt.errorbar(TT,Binder,BBerr,marker=marker[0],mfc='none',markersize=5,capsize= 7)
+        else :
+            plt.plot(TT,Binder,marker=marker[0],mfc='none',markersize=5)
+        # plt.axvline(x=2/np.log(1+np.sqrt(2)),c='grey',lw=1,dashes=[2,2])
+
+        ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
+    plt.ylabel('Binder ratio g')
+    plt.xlabel('Temperature')
+    plt.show()
+
+def draw_binder_FFS_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list = ["MM","CC"]):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    marker = ["o","s","o","s","o"]
+
+    for i,path in enumerate(path_list):
+        if(isinstance(path,str)):
+            a = pd.read_csv(path)
+        else:
+            a = path
+
+        TT = a.iloc[:,1].values
+        if "calc" in plot_list:
+            Binder = 0.5*(3-a.loc[:,"mm**4"].values/(a.loc[:,"mm**2"].values)**2)
+        else:
+            Binder = a.loc[:,'Binder'].values
+        # plt.ylim(-0.1,2)
+        # plt.xlim(1.5,4)
+        plt.style.use('seaborn-whitegrid')
+        TTa = TT-Tc
+        
+        if "BBerr" in plot_list:
+            BBerr = a.loc[:,"BBerr"].values
+            plt.errorbar(TTa*(Lsize[i]**(1/nu)),Binder,BBerr,linestyle="",marker=marker[0],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i]))
+        else :
+            plt.plot(TTa*(Lsize[i]**(1/nu)),Binder,linestyle="",marker=marker[0],markersize=5,mfc='none',label="L"+str(Lsize[i]))
+        # plt.axvline(x=2/np.log(1+np.sqrt(2)),c='grey',lw=1,dashes=[2,2])
+
+        ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
+    plt.ylabel('Binder ratio g')
+    plt.xlabel('(T-Tc)*(Lsize^(1/nu))')
+    plt.show()
+
 def draw_binder_fig1(path, plot_list = ["BBerr"]):
     # options : "BBerr", "calc"
     fig = plt.figure()
@@ -169,7 +243,7 @@ def draw_binder_fig1(path, plot_list = ["BBerr"]):
 
     TT = a.iloc[:,1].values
     if "calc" in plot_list:
-        Binder = 0.5*(3-a.loc[:,"mm**4"].values/(i.loc[:,"mm**2"].values)**2)
+        Binder = 0.5*(3-a.loc[:,"mm**4"].values/(a.loc[:,"mm**2"].values)**2)
     else:
         Binder = a.loc[:,'Binder'].values
     # plt.ylim(-0.1,2)
@@ -197,7 +271,7 @@ def draw_binder_FSS_fig1(path,Tc, Lsize,nu = 1,plot_list = ["BBerr"]):
 
     TT = a.iloc[:,1].values
     if "calc" in plot_list:
-        Binder = 0.5*(3-a.loc[:,"mm**4"].values/(i.loc[:,"mm**2"].values)**2)
+        Binder = 0.5*(3-a.loc[:,"mm**4"].values/(a.loc[:,"mm**2"].values)**2)
     else:
         Binder = a.loc[:,'Binder'].values
     # plt.ylim(-0.1,2)
@@ -349,7 +423,7 @@ def refine_parsing_dict(parsing_dict):
 #                 res[col] += (data[col]/len(ls))/len(ls)**(0.5)
 #     return res
 
-def merge_csv(ls,mcs=[]):
+def merge_csv(ls,mcs=[], option = False):
     res = ls[0].copy()
     # res = pd.DataFrame(index=ls[0].index,columns=ls[0].columns)
     # res.fillna(0)
@@ -363,6 +437,10 @@ def merge_csv(ls,mcs=[]):
             if col.find("err") == -1:
                 for data in ls:
                     res[col] += (data[col]/len(ls))
+            elif option is True:
+                # for data in ls:
+                res[col] += ((ls[-1][col]))**2/len(ls)
+                res[col] **= 0.5
             else:
                 for data in ls:
                     res[col] += ((data[col])/len(ls))**2
@@ -383,9 +461,22 @@ def merge_csv(ls,mcs=[]):
                 res[col] **= 0.5
         return res
 
-def merge_dataset(ls, Lsize, Bins, mcs, alpha_list):
-    Luniq = Lsize.unique()
-    idx = 0
-    res = [[],[],[],[]]
-    for ll in Luniq:
-        cnt = Lsize.count(ll)
+def merge_dataset(parsing_dict, alpha_list):
+    new_parsing_dict ={}
+    for alpha in alpha_list:
+        # ls, Lsize, Bins, mcs = 
+        a = parsing_dict[alpha]
+        ls, Lsize, Bins, mcs = a[0], a[1], a[2], a[3]
+        Luniq = pd.array(Lsize).unique()
+        idx = 0
+        res = [[],[],[],[]]
+        for ll in Luniq:
+            cnt = Lsize.count(ll)
+            res[1].append(ll)
+            tt = merge_csv(ls[idx:idx+cnt], mcs[idx:idx+cnt])
+            res[0].append(tt)
+            res[2].append(Bins[0])
+            res[3].append(sum(mcs[idx:idx+cnt]))
+            idx += cnt
+        new_parsing_dict[alpha] = res
+    return new_parsing_dict
