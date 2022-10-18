@@ -7,8 +7,8 @@
 */*/.vscode
 
 # Excutable files makes repo nasty
-*.exe
-*.out
+# *.exe
+# *.out
 
 # Result data as csv should be selected
 *.csv
