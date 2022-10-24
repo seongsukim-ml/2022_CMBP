@@ -168,7 +168,7 @@ def draw_binder_FFS(path_list, Lsize, Bins, Step_Size, xliml = None, yliml = (0.
     # plt.xlabel('$L^{1/\nu}[T-T_c]$')
     plt.show()
 
-def draw_binder_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list = ["MM","CC"]):
+def draw_binder_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list = ["MM","CC"],xliml=[],yliml = []):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     marker = ["o","s","o","s","o"]
@@ -181,9 +181,9 @@ def draw_binder_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list
 
         TT = a.iloc[:,1].values
         if "calc" in plot_list:
-            Binder = 0.5*(3-a.loc[:,"mm**4"].values/(a.loc[:,"mm**2"].values)**2)
+            Binder = 0.5*(3-a.loc[:,"mm**4"].values/(a.loc[:,"mm**2"].values)**2)*(2/3)
         else:
-            Binder = a.loc[:,'Binder'].values
+            Binder = a.loc[:,'Binder'].values*(2/3)
         # plt.ylim(-0.1,2)
         # plt.xlim(1.5,4)
         plt.style.use('seaborn-whitegrid')
@@ -193,10 +193,14 @@ def draw_binder_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list
         else :
             plt.plot(TT,Binder,marker=marker[0],mfc='none',markersize=5)
         # plt.axvline(x=2/np.log(1+np.sqrt(2)),c='grey',lw=1,dashes=[2,2])
-
-        ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
+    if xliml:
+        plt.xlim(xliml)
+    if yliml:
+        plt.ylim(yliml)
+    ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
     plt.ylabel('Binder ratio g')
     plt.xlabel('Temperature')
+
     plt.show()
 
 def draw_binder_FFS_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list = ["MM","CC"]):
@@ -212,6 +216,7 @@ def draw_binder_FFS_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_
 
         TT = a.iloc[:,1].values
         if "calc" in plot_list:
+            print("calc")
             Binder = 0.5*(3-a.loc[:,"mm**4"].values/(a.loc[:,"mm**2"].values)**2)
         else:
             Binder = a.loc[:,'Binder'].values
