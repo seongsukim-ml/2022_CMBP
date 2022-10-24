@@ -100,7 +100,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
                 blocksum_MM   += MM;
                 blocksum_MM2  += MM*MM;
-                blocksum_MM4  += MM*MM*MM*MM;
+                blocksum_MM4  += MM*MM*MM*MM; // Overflow when L > 64 (1e+19)
                 blocksum_HH   += HH;
                 blocksum_HH2  += HH*HH;
                 blocksum_MM_noAbs += model.sigma;
