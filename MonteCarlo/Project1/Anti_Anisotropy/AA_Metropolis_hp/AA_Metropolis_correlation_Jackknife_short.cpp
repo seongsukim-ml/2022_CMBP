@@ -1,10 +1,14 @@
-#include "AA_Metropolis_program_header_hb.hpp"
+#include "AA_Metropolis_program_header_short.hpp"
 
 // arguments list that helps to pass the args to model
-vector<vector<FLOAT2>> result_to_file = vector<vector<FLOAT2>>();
 // vector<string> result_to_file = vector<string>();
-vector<string> result_to_file_cor = vector<string>();
-vector<string> result_to_file_cor_err = vector<string>();
+// vector<string> result_to_file_cor = vector<string>();
+// vector<string> result_to_file_cor_err = vector<string>();
+
+vector<vector<FLOAT2>> result_to_file         = vector<vector<FLOAT2>>();
+vector<vector<FLOAT2>> result_to_file_cor     = vector<vector<FLOAT2>>();
+vector<vector<FLOAT2>> result_to_file_cor_err = vector<vector<FLOAT2>>();
+
 
 int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv[1]--> Input parameter
     signal(SIGSEGV, &handler);
@@ -67,10 +71,8 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         cout << '\n';
 
         /***********Monte Carlo Step and Caculate the data***********/
-        // int block_size = 10000;
-        // int blocks = mcs/block_size;
-        int blocks = 100;
-        int block_size = mcs/blocks;
+        int block_size = 1000;
+        int blocks = mcs/block_size;
         FLOAT1 bsi = 1/(long double) block_size;
 
         MM_noAbs = 0;
@@ -81,6 +83,10 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         vector<FLOAT2> Block_HH(blocks);
         vector<FLOAT2> Block_HH2(blocks);
         vector<FLOAT2> Block_MM_noAbs(blocks);
+        vector<FLOAT2> cor_short_err(kN);
+        vector<FLOAT2> cor_long_err(kN);
+        vector<INT2>   Block_cor_short_sum(blocks*kN);
+        vector<INT2>   Block_cor_long_sum(blocks*kN);
 
         for(int bidx = 0; bidx < blocks; bidx++){
             FLOAT2 blocksum_MM       = 0;
@@ -99,10 +105,17 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
                 blocksum_MM   += MM;
                 blocksum_MM2  += MM*MM;
-                blocksum_MM4  += MM*MM*MM*MM;
+                blocksum_MM4  += MM*MM*MM*MM; // Overflow when L > 64 (1e+19)
                 blocksum_HH   += HH;
                 blocksum_HH2  += HH*HH;
                 blocksum_MM_noAbs += model.sigma*kNi;
+
+                model.CalculateCorrelation();
+                // model.CalculateCorrelationStaggered();
+                for(int ii = 0; ii < kN; ii++){
+                    Block_cor_long_sum[bidx*kN + ii]  += model.cor_long[ii];
+                    Block_cor_short_sum[bidx*kN + ii] += model.cor_short[ii];
+                }
             }
             Block_MM[bidx]  = blocksum_MM *bsi;
             Block_MM2[bidx] = blocksum_MM2*bsi;
@@ -111,6 +124,11 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             Block_HH2[bidx] = blocksum_HH2*bsi;
 
             Block_MM_noAbs[bidx] = blocksum_MM_noAbs*bsi;
+
+            for(int ii = 0; ii < kN; ii++){
+                cor_long_sum[ii]  += Block_cor_long_sum[bidx*kN + ii];
+                cor_short_sum[ii] += Block_cor_short_sum[bidx*kN + ii];
+            }
 
             model.res[0] += Block_MM[bidx];          // = <m>
             model.res[1] += Block_MM2[bidx];         // = <m^2>
@@ -129,6 +147,13 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         model.MV[cBin] = model.res[0];
         model.CV[cBin] = (model.BetaV[cBin]*model.BetaV[cBin])*(model.res[4]-model.res[3]*model.res[3]);
         model.BV[cBin] = 0.5*(3-model.res[2]/(model.res[1]*model.res[1]));
+        /***********************************************************/
+
+        /*******Calculate Correlation.*********/
+        for(int j = 0; j < kN; j++){
+            cor_long_avg[j] = (FLOAT2)(cor_long_sum[j])/blocks/block_size-MM_noAbsf*MM_noAbsf;
+            cor_short_avg[j] = (FLOAT2)(cor_short_sum[j])/blocks/block_size-MM_noAbsf*MM_noAbsf;
+        }
         /***********************************************************/
 
         /*******Calculate Jackknife Error.*********/
@@ -156,6 +181,12 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
 
             FLOAT2 BBtemp = 0.5*(3-MM4temp/(MM2temp*MM2temp));
             BBerr += (BBtemp-model.BV[cBin])*(BBtemp-model.BV[cBin]);
+            for(int ii = 0; ii < kN; ii++){
+                FLOAT2 cor_long_temp = (cor_long_sum[ii]-Block_cor_long_sum[bidx*kN + ii])/(FLOAT2)(mcs-block_size)-MM_noAbsf*MM_noAbsf;
+                cor_long_err[ii] += (cor_long_avg[ii]-cor_long_temp) * (cor_long_avg[ii]-cor_long_temp);
+                FLOAT2 cor_short_temp = (cor_short_sum[ii]-Block_cor_short_sum[bidx*kN + ii])/(FLOAT2)(mcs-block_size)-MM_noAbsf*MM_noAbsf;
+                cor_short_err[ii] += (cor_short_avg[ii]-cor_short_temp) * (cor_short_avg[ii]-cor_short_temp);
+            }
         }
         MMerr  = pow(MMerr,0.5);
         MM2err = pow(MM2err,0.5);
@@ -172,8 +203,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         // string result = to_string(cBin) + "," + to_string(model.TV[cBin]) + "," + to_string(model.MV[cBin]) + "," + to_string(model.CV[cBin]) + ",";
         // result = result + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
         // result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + "," + to_string(model.BV[cBin]) + ",";
-        // result = result + to_string(MMerr) + "," + to_string(CCerr) + "," + to_string(BBerr) + ",";
-        // result = result + to_string(MM2err) + "," + to_string(MM4err) + "\n";
+        // result = result + to_string(MMerr) + "," + to_string(CCerr) + "," + to_string(BBerr) + "\n";
 
         vector<FLOAT2> result = {
             FLOAT1(cBin),model.TV[cBin],model.MV[cBin],model.CV[cBin],
@@ -181,17 +211,93 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
             model.BV[cBin], MMerr, CCerr, BBerr, MM2err, MM4err
             };
 
+
         result_to_file.push_back(result);
+
+        // correlation result save
+        // string result2 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
+        // for(int j = 0; j < kN; j++){
+        //     result2 = result2 + to_string(cor_long_avg[j]) + ",";
+        // }
+        // result2 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
+        // for(int j = 0; j < kN; j++){
+        //     result2 = result2 + to_string(cor_short_avg[j]) + ",";
+        // }
+        // result2.pop_back();
+        // result_to_file_cor.push_back(result2 + "\n");
+
+
+        vector<FLOAT2> result2 = {FLOAT1(cBin),model.TV[cBin]};
+        for(int j = 0; j < kN; j++){
+            result2.push_back(cor_long_avg[j]);
+        }
+        result_to_file_cor.push_back(result2);
+
+        result2 = {FLOAT1(cBin),model.TV[cBin]};
+        for(int j = 0; j < kN; j++){
+            result2.push_back(cor_short_avg[j]);
+        }
+        result_to_file_cor.push_back(result2);
+
+
+        // correlation err result save
+        // string result3 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
+        // for(int j = 0; j < kN; j++){
+        //     result3 = result3 + to_string(cor_long_err[j]) + ",";
+        // }
+        // result3.pop_back();
+        // result_to_file_cor_err.push_back(result3 + "\n");
+
+        // result3 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
+        // for(int j = 0; j < kN; j++){
+        //     result3 = result3 + to_string(cor_short_err[j]) + ",";
+        // }
+        // result3.pop_back();
+        // result_to_file_cor_err.push_back(result3 + "\n");
+
+        vector<FLOAT2> result3 = {FLOAT1(cBin),model.TV[cBin]};
+        for(int j = 0; j < kN; j++){
+            result3.push_back(cor_long_err[j]);
+        }
+        result_to_file_cor_err.push_back(result3);
+
+        result3 = {FLOAT1(cBin),model.TV[cBin]};
+        for(int j = 0; j < kN; j++){
+            result3.push_back(cor_short_err[j]);
+        }
+        result_to_file_cor_err.push_back(result3);
     }
 
-    kFilename += "_Jackknife";
+    kFilename += "_corJackknife";
     /***********Save the result of the Calculation**********/
-    Writer modelW = Writer(kFilename,filenum);
-    // vector<string> ={"idx","temperature","stag_mag",}
-    modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L,Binder,MMerr,CCerr,BBerr,MM2err,MM4err\n");
+    Writer modelW = Writer(kFilename, filenum);
+    modelW.WriteLine("idx,temperture,(staggered)magnetization,specific heat,abs(mm),mm**2,mm**4,HH/L,HH**2/L,Binder,MMerr,CCerr,BBerr\n");
     for(int i = 0; i < kBin; i++)
         modelW.WriteLine(result_to_file.at(i));
     modelW.CloseNewFile();
+    /******************************************************/
+
+    string cor_idx = "idx,temperture,cor,";
+    for(int i = 0; i < kN; i++){
+        cor_idx += to_string(i) + ',';
+    }
+    cor_idx.pop_back();
+    cor_idx += '\n';
+
+    /***********Save the result of the Correlation**********/
+    Writer modelW2 = Writer(kFilename+"_corres", filenum);
+    modelW2.WriteLine(cor_idx);
+    for(int i = 0; i < 2*kBin; i++)
+        modelW2.WriteLine(result_to_file_cor.at(i));
+    modelW2.CloseNewFile();
+    /******************************************************/
+
+    /***********Save the result of the Correlation**********/
+    Writer modelW3 = Writer(kFilename+"_corerr", filenum);
+    modelW3.WriteLine(cor_idx);
+    for(int i = 0; i < 2*kBin; i++)
+        modelW3.WriteLine(result_to_file_cor_err.at(i));
+    modelW3.CloseNewFile();
     /******************************************************/
     Farewell();
 }

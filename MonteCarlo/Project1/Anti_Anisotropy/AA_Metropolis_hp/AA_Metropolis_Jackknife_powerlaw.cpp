@@ -1,3 +1,4 @@
+#include "AA_Metropolis_hp_heatbath_powerlaw.hpp"
 #include "AA_Metropolis_program_header_hb.hpp"
 
 // arguments list that helps to pass the args to model
@@ -184,7 +185,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         result_to_file.push_back(result);
     }
 
-    kFilename += "_Jackknife";
+    kFilename += "_powJackknife";
     /***********Save the result of the Calculation**********/
     Writer modelW = Writer(kFilename,filenum);
     // vector<string> ={"idx","temperature","stag_mag",}

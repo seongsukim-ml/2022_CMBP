@@ -4,7 +4,7 @@
  * @brief Ewald method header file that is made for caculation of Ising model
  * @version 0.1
  * @date 2022-03-22
- * 
+ *
  * @copyright Copyright (c) 2022
  * @see
  * Gamma : https://www.boost.org/doc/libs/1_78_0/libs/math/doc/html/math_toolkit/sf_gamma/tgamma.html
@@ -72,6 +72,7 @@ class ewald_ND{
         double pi_1_1D(int i, int j, double kappa);
         double pi_2_1D(int i, int j, double kappa);
         double pi_ij_1D(int i, int j, bool consider_parallel = true);
+        double power_law1D(int i,int j);
         double periodic_sum_comparison_1D(int i, int j, int idx);
 
         double gam(double z);
@@ -81,6 +82,8 @@ class ewald_ND{
                                    // N= 1000까지도 가능할듯? -> 실제로 해보려니까 뻗어버리네..
                                    // dist_cache_2D 크기는 n/4만 해도 가능 한 듯
         vector<double> dist_cache_1D;
+        vector<double> dist_cache_1D_power;
+
 };
 
 ewald_ND::ewald_ND(int kd, vector<int> kL, double kalpha): d(kd){ //kL: x,y,z
@@ -93,6 +96,7 @@ ewald_ND::ewald_ND(int kd, vector<int> kL, double kalpha): d(kd){ //kL: x,y,z
     // cout << dist_cache_2D.max_size() << ' ' << N << ' ' << size << '\n';
     dist_cache_2D = vector<double>(size,-1);
     dist_cache_1D = vector<double>(L[1],-1);
+    dist_cache_1D_power = vector<double>(L[1],-1);
 }
 
 // Gamma function
@@ -139,7 +143,7 @@ double ewald_ND::pi_1(int i,int j, double kappa){
                 double temp = inv_dist*gaminc_up(alpha/2,(kappa*dis)*(kappa*dis));
                 res += temp;
             }
-        }        
+        }
     }
     return 1/gam(alpha/2)*res;
 }
@@ -155,7 +159,7 @@ double ewald_ND::pi_2(int i,int j, double kappa){
             for(int ll = 0; ll < 2-(ny==0); ll++){
                 double hx = nx*(1-2*kk), hy = ny*(1-2*ll);
                 double k_res = cos(2*pi*vec_mul(hx,hy,xof(i)-xof(j),yof(i)-yof(j)));
-                double pi_k = pi*dist_2pt(hx,hy,0,0); 
+                double pi_k = pi*dist_2pt(hx,hy,0,0);
                 // k_res *= pow(0.5*pi_k,alpha-d);
                 k_res *= 0.5*pow(pi_k,alpha-d);
 
@@ -163,7 +167,7 @@ double ewald_ND::pi_2(int i,int j, double kappa){
                 // cout << idx << ' ' << hx << ' ' << hy << ' ' << k_res <<'\n';
                 res += k_res;
             }
-        }        
+        }
     }
     return 2*pow(pi,d/2)/gam(alpha/2)/(L[0]*L[1])*res;
 }
@@ -194,7 +198,7 @@ double ewald_ND::pi_1_1D(int i, int j, double kappa){
             // cout << dis1 << " " << dis << '\n';
             double inv_dist = pow(dis,-alpha);
             double temp = inv_dist*gaminc_up(alpha/2,(kappa*dis)*(kappa*dis));
-            res += temp; 
+            res += temp;
             // cout << idx <<" " << yof(i)-yof(j) <<  " " << nx << " " << temp << '\n';
         }
     }
@@ -212,7 +216,7 @@ double ewald_ND::pi_2_1D(int i,int j, double kappa){
             nx *= -1;
             double k_res = cos(2*pi*vec_mul(nx,0,yof(i)-yof(j),0));
             // double pi_k = pi*dist_2pt(nx,0,0,0);
-            double pi_k = pi*abs(nx); 
+            double pi_k = pi*abs(nx);
 
             k_res *= 0.5*pow(pi_k,alpha-d);
             k_res *= gaminc_up(-0.5*(alpha-d),(pi_k/kappa)*(pi_k/kappa));
@@ -232,6 +236,19 @@ double ewald_ND::pi_ij_1D(int i, int j, bool consider_parallel){
         res = pi_1_1D(i,j,kappa) + pi_2_1D(i,j,kappa);
 
     }
+    return res;
+}
+
+double ewald_ND::power_law1D(int i, int j){
+    if(i == j) return 0;
+    if(xof(i) != xof(j)) return 0;
+    int diffy = min(abs(yof(i)-yof(j)),L[0]-abs(yof(i)-yof(j)));
+    // cout << diffy << '\n';
+    double &res = dist_cache_1D_power[diffy];
+    if(res == -1){
+        res = pow(diffy,-alpha);
+    }
+    // cout << i << ' ' << j << ' ' << res << '\n';
     return res;
 }
 
@@ -275,13 +292,13 @@ double ewald_ND::periodic_sum_comparison_1D(int i, int j, int idx){
 //         // // cout << t1 << '\n';
 //         double t2 = e2d.pi_2(0,i,kappa);
 //         // cout << t2 << '\n';
-//         // cout << i << ' ' << t1 << ' ' << t2 << ' ' << t1 + t2 << '\n'; 
-//         cout << i << ' ' << e2d.cache_point_2D(0,i) << '\n'; 
+//         // cout << i << ' ' << t1 << ' ' << t2 << ' ' << t1 + t2 << '\n';
+//         cout << i << ' ' << e2d.cache_point_2D(0,i) << '\n';
 //         cout << i << ' ' << t1 + t2 << ' ' << e2d.pi_ij(0,i) << ' ' << ((e2d.pi_ij(0,i) - t1-t2) < 1e-20) << '\n';
 //         if(!((e2d.pi_ij(0,i) - t1-t2)< 1e-19)) cnt++;
-//         // cout << i << ' ' << e2d.pi_ij(0,i) << '\n'; 
+//         // cout << i << ' ' << e2d.pi_ij(0,i) << '\n';
 //         // cout << abs(abs(e2d.xof(0)-e2d.xof(i))-e2d.L[0]/2) << '\n';
-//         // cout << (e2d.L[0]/2-abs(abs(e2d.xof(0)-e2d.xof(i))-e2d.L[0]/2)) << ' ' << (e2d.L[1]/2-abs(abs(e2d.yof(0)-e2d.yof(i))-e2d.L[1]/2))*e2d.L[0] << '\n'; 
+//         // cout << (e2d.L[0]/2-abs(abs(e2d.xof(0)-e2d.xof(i))-e2d.L[0]/2)) << ' ' << (e2d.L[1]/2-abs(abs(e2d.yof(0)-e2d.yof(i))-e2d.L[1]/2))*e2d.L[0] << '\n';
 //     }
 //     cout << cnt << '\n';
 //     // cout << boost::math::tgamma(2,3) << '\n';

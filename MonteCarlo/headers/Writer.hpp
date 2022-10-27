@@ -129,8 +129,8 @@ void Writer::WriteLine(vector<T> contents){
     // This assumes that there is no line break.
     myfile << fixed << setw(3) << int(contents.at(0)) << ',';
     for(int i = 1; i < contents.size()-1; i++)
-        myfile << fixed << setw(11) << contents.at(i) << ',';
-    myfile << fixed << setw(11) << contents.back() << '\n';
+        myfile << fixed << setw(9) << contents.at(i) << ',';
+    myfile << fixed << setw(9) << contents.back() << '\n';
 }
 
 void Writer::WriteLine(vector<string> contents){

@@ -46,7 +46,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     static string kFilename = ".\\Result\\auto\\"+Model::Name()+"_c_"+to_string(kLx)+"_"+to_string(kLy)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
     #endif
     #ifdef linux
-    static string kFilename = "./Result/auto/"+Model::Name()+"_c_"+to_string(kLx)+"_"+to_string(kLy)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
+    static string kFilename = "./Result/"+Model::Name()+"_c_"+to_string(kLx)+"_"+to_string(kLy)+"_int"+to_string(kBin)+"_mcs"+to_string(mcs)+"_a"+to_string(alpha);
     #endif
 
     Greetings();

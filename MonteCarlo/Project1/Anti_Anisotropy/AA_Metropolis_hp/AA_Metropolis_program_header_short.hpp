@@ -1,8 +1,8 @@
-#include "AA_Metropolis_hp_heatbath2.hpp"
+#include "AA_Metropolis_short.hpp"
 #include "../../../headers/Writer.hpp"
 #include <iostream>
 #include <iomanip>
-#define base_L24
+#define base_L128
 
 #ifdef base_L128
     /***************** (Test) Parameters 1 *****************/
@@ -10,7 +10,7 @@
     int kLy         = 128;
 
     int kN          = kLx*kLy;
-    int kBin        = 11;          /*Parameter: Change binning of temperature*/
+    int kBin        = 1;          /*Parameter: Change binning of temperature*/
 
     double kB       = 0;
     double kJx      = 1;
@@ -42,13 +42,10 @@
     double kJx      = 1;
     double kJy      = -1;
 
-    double alpha    = 2.0;
-    // double alpha    = 100;
+    double alpha    = 100;
 
-    double Tsrt = 1.91;
-    double Tfin = 1.92;
-    // double Tsrt = 2.26918;
-    // double Tfin = 2.26918;
+    double Tsrt = 2.26918;
+    double Tfin = 2.26918;
 
     double isTinf = false;
     bool Random = false;
