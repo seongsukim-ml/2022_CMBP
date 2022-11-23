@@ -241,13 +241,7 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
     for(int i = 0; i < kN; i++){
         cor_idx += to_string(i) + ',';
     }
-    cor_idx.pop_back();
-    cor_idx += '\n';
 
-    /***********Save the result of the Correlation**********/
-    Writer modelW2 = Writer(kFilename+"_corres", filenum);
-    modelW2.WriteLine(cor_idx);
-    for(int i = 0; i < 2*kBin; i++)
         modelW2.WriteLine(result_to_file_cor.at(i));
     modelW2.CloseNewFile();
     /******************************************************/
