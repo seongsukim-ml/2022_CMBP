@@ -32,11 +32,11 @@
 
 #ifdef base_L24
     /***************** (Test) Parameters 1 *****************/
-    int kLx         = 24;          /*Parameter: lattice size*/
-    int kLy         = 24;
+    int kLx         = 2;          /*Parameter: lattice size*/
+    int kLy         = 4;
 
     int kN          = kLx*kLy;
-    int kBin        = 11;          /*Parameter: Change binning of temperature*/
+    int kBin        = 2;          /*Parameter: Change binning of temperature*/
 
     double kB       = 0;
     double kJx      = 1;

@@ -91,7 +91,7 @@ class AA_Metropolis{
         // N size of correation result vector: cor[n] is correlation btw 0th site spin and nth spin;
         float* cor_long;
         float* cor_short;
-        float *AA, *BB;
+        float *cor_short_slice, *cor_long_slice;
 
 
         vector<INT8> sign;
@@ -120,8 +120,11 @@ class AA_Metropolis{
         // void Initialzie(int idx);
         void Measure();
         void Measure_fast();
-        void Calculate(INT1 _n = 0,bool Random = true);
+        // void Calculate(INT1 _n = 0,bool Random = true);
+        void Calculate(INT1 _n = 0,bool Random = false);
         void IterateUntilEquilibrium(INT1 equil_time,bool random = true);
+        void CalculateCorrelation_reset();
+        void CalculateCorrelation_update();
         void CalculateCorrelation();
         void Heatbath_Measure();
         // void CalculateCorrelationStaggered();
@@ -134,15 +137,15 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
     this-> sc        = vector<INT8>(N,1);
     this-> heatbath  = vector<FLOAT1>(N);
 
-    this-> cor_long  = new float[N];
-    this-> cor_short = new float[N];
+    this-> cor_short = new float[Lx*Lx];
+    this-> cor_long  = new float[Ly*Ly];
     this-> sign      = vector<INT8>(N);
     this-> linked_cb = vector<INT8>(N);
     this-> linked_ln = vector<INT8>(N);
     this-> linked_rn = vector<INT8>(N);
 
-    AA = new float[Lx];
-    BB = new float[Ly];
+    cor_short_slice = new float[Lx];
+    cor_long_slice = new float[Ly];
 
     // Checkboard style
     // if(Lx%2 == 1)
@@ -353,45 +356,50 @@ void AA_Metropolis::IterateUntilEquilibrium(INT1 equil_time,bool random){
         Calculate(0,random);
 }
 
-void AA_Metropolis::CalculateCorrelation(){
-    // memset(cor_short,0,sizeof(cor_short));
-    // memset(cor_long,0,sizeof(cor_long));
-    for(int i = 0; i < N; i++)
+void AA_Metropolis::CalculateCorrelation_reset(){
+    for(int i = 0; i < Lx*Lx; i++)
         cor_short[i] = 0;
-    for(int i = 0; i < N; i++)
+    for(int i = 0; i < Ly*Ly; i++)
         cor_long[i] = 0;
+}
 
-    // for(int i = 0; i < Ly; i++){
-    //     for(int j = 0; j < Lx; j++){
-    //         AA[j] = sc[i*Lx + j];
-    //     }
-    //     cblas_sspr(CblasRowMajor,CblasUpper,Lx,1/(FLOAT2)Lx,AA,1,cor_short);
-    // }
-    // for(int i = 0; i < Lx; i++){
-    //     for(int j = 0; j < Ly; j++){
-    //         BB[j] = sc[j*Lx + i];
-    //     }
-    //     cblas_sspr(CblasRowMajor,CblasUpper,Ly,1/(FLOAT2)Ly,BB,1,cor_long);
-    // }
+void AA_Metropolis::CalculateCorrelation_update(){
     for(int i = 0; i < 1; i++){
         for(int j = 0; j < Lx; j++){
-            AA[j] = sc[i*Lx + j];
+            cor_short_slice[j] = sc[i*Lx + j];
         }
-        cblas_sspr(CblasRowMajor,CblasUpper,Lx,1,AA,1,cor_short);
+        cblas_sspr(CblasRowMajor,CblasUpper,Lx,1,cor_short_slice,1,cor_short);
     }
     for(int i = 0; i < 1; i++){
         for(int j = 0; j < Ly; j++){
-            BB[j] = sc[j*Lx + i];
+            cor_long_slice[j] = sc[j*Lx + i];
         }
-        cblas_sspr(CblasRowMajor,CblasUpper,Ly,1,BB,1,cor_long);
+        cblas_sspr(CblasRowMajor,CblasUpper,Ly,1,cor_long_slice,1,cor_long);
     }
 }
 
-// void AA_Metropolis::CalculateCorrelationStaggered(){
-//     cor_stag = (sc^sign);
-//     if(cor_stag[0] == 0)
-//         cor_stag = (cor_stag^bit1);
-//     else
-//         cor_stag = (cor_stag^bit0);
-// }
+void AA_Metropolis::CalculateCorrelation(){
+    CalculateCorrelation_reset();
+    CalculateCorrelation_update();
+    // memset(cor_short,0,sizeof(cor_short));
+    // memset(cor_long,0,sizeof(cor_long));
+
+    // for(int i = 0; i < N; i++)
+    //     cor_short[i] = 0;
+    // for(int i = 0; i < N; i++)
+    //     cor_long[i] = 0;
+
+    // for(int i = 0; i < 1; i++){
+    //     for(int j = 0; j < Lx; j++){
+    //         cor_short_slice[j] = sc[i*Lx + j];
+    //     }
+    //     cblas_sspr(CblasRowMajor,CblasUpper,Lx,1,cor_short_slice,1,cor_short);
+    // }
+    // for(int i = 0; i < 1; i++){
+    //     for(int j = 0; j < Ly; j++){
+    //         cor_long_slice[j] = sc[j*Lx + i];
+    //     }
+    //     cblas_sspr(CblasRowMajor,CblasUpper,Ly,1,cor_long_slice,1,cor_long);
+    // }
+}
 #endif // ____AA_Metropolis____

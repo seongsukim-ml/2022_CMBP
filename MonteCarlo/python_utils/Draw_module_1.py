@@ -1,3 +1,4 @@
+from tkinter import BOTTOM
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -22,6 +23,9 @@ alpha_file_name_dict = {
                     "a=3.5"  :"3.500000",
                     "a=100"  :"100.000000",
 }
+
+plt.style.use('seaborn-whitegrid')
+hr = {"figsize":(10,6),"dpi":500}
 
 def draw_fig1(path, Lsize, plot_list = ["MM","CC"]):
     fig = plt.figure()
@@ -88,7 +92,7 @@ def draw_multi(path_list,Lsize,Bins,Step_Size, plot_list = ["MM","CC"]):
         MM = a.loc[:,'abs(mm)'].values
         CC = a.loc[:,'specific heat'].values
         # Sus = (a.loc[:,'mm**2'].values) - MM**2
-        Sus = ((a.loc[:,'mm**2'].values)*Lsize[i]**4 - (MM*Lsize[i]**2)**2)*Lsize[i]**(-1.75*2)
+        Sus = (TT*Lsize[i]**2*(a.loc[:,'mm**2'].values) - (MM)**2)
         MMerror = a.loc[:,'MMerr'].values
         CCerror = a.loc[:,'CCerr'].values
         # MMerror = np.sqrt(1/(18000-1)*abs(a.iloc[:,5].values/10000-(a.iloc[:,4].values/100)**2))
@@ -130,7 +134,7 @@ def draw_multi(path_list,Lsize,Bins,Step_Size, plot_list = ["MM","CC"]):
 def draw_multi_critical(path_list,Lsize,Bins,Step_Size,Tc = 2.269, plot_list = ["MM","CC"]):
     plt.style.use('seaborn-whitegrid')
     # plt.figure(dpi=300)
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10,6),dpi=500)
     ax = fig.add_subplot(111)
 
     for i, data in enumerate(path_list):
@@ -145,7 +149,12 @@ def draw_multi_critical(path_list,Lsize,Bins,Step_Size,Tc = 2.269, plot_list = [
         CC = a.loc[:,'specific heat'].values/np.log(Lsize[i]**2)
 
         # Sus = ((a.loc[:,'mm**2'].values)*Lsize[i]**4 - (MM*Lsize[i]**2)**2)
-        Sus = ((a.loc[:,'mm**2'].values)*Lsize[i]**4 - (MM*Lsize[i]**2)**2)*Lsize[i]**(-1.87*2)
+        # Sus = ((a.loc[:,'mm**2'].values)*Lsize[i]**4 - (MM*Lsize[i]**2)**2)*Lsize[i]**(-1.867*2)
+        # Sus = ((a.loc[:,'mm**2'].values)*Lsize[i]**4 - (MM*Lsize[i]**2)**2)*Lsize[i]**(-1.75*2)
+        # Sus = (TT*Lsize[i]**2*(a.loc[:,'mm**2'].values) - (MM)**2)*Lsize[i]**(-1.75)
+        Sus = (TT*Lsize[i]**2*(a.loc[:,'mm**2'].values) - (MM)**2)*Lsize[i]**(-1.75)
+        
+
 
         MMerror = a.loc[:,'MMerr'].values
         # CCerror = a.loc[:,'CCerr'].values/Lsize[i]**(0.5)
@@ -158,7 +167,7 @@ def draw_multi_critical(path_list,Lsize,Bins,Step_Size,Tc = 2.269, plot_list = [
         plt.style.use('seaborn-whitegrid')
         # plt.figure(dpi=300)
 
-        TT = (TT-Tc)*Lsize[i]
+        TT = (TT-Tc)*Lsize[i]/TT
         # plt.ylim(-0.1,2)
         # plt.xlim(0,TT[-1])
         if "MM"    in plot_list:
@@ -181,13 +190,13 @@ def draw_multi_critical(path_list,Lsize,Bins,Step_Size,Tc = 2.269, plot_list = [
     # plt.text(0.05,1.67,"Jackknife bin : 50")
     # plt.text(2.27, -0.2, '$T_c$', ha='center')
 
-    ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
+    # ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
     plt.ylabel('Specific heat or magnetization per spin m')
-    plt.xlabel('Temperature T')
+    plt.xlabel('Reduced beta')
     plt.legend()
     plt.show()
 
-def draw_binder_FFS(path_list, Lsize, Bins, Step_Size, xliml = None, yliml = (0.75,1), Tc=2.269, nu=1):
+def draw_binder_FFS(path_list, Lsize, Bins, Step_Size, xliml = None, yliml = (0.75,1), Tc=2.269, nu=1, _title = ""):
     Llist = []
     for data in path_list:
         if(isinstance(data,str)):
@@ -229,11 +238,16 @@ def draw_binder_FFS(path_list, Lsize, Bins, Step_Size, xliml = None, yliml = (0.
     plt.axvline(x=0,c='grey',lw=1,dashes=[2,2])
     plt.ylabel('Binder ratio g')
     plt.xlabel('Finite size scailing')
+    plt.title(_title)
     # plt.xlabel('$L^{1/\nu}[T-T_c]$')
     plt.show()
 
-def draw_binder_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list = ["MM","CC"],xliml=[],yliml = []):
-    fig = plt.figure()
+def draw_binder_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list = ["MM","CC","hr"],xliml=[],yliml = []):
+    if "hr" in plot_list:
+        fig = plt.figure(**hr)
+    else:
+        fig = plt.figure()
+
     ax = fig.add_subplot(111)
     marker = ["o","s","o","s","o"]
 
@@ -262,14 +276,15 @@ def draw_binder_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list
     if yliml:
         plt.ylim(yliml)
     plt.legend()
-    ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
+    # ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
     plt.ylabel('Binder ratio g')
     plt.xlabel('Temperature')
 
     plt.show()
 
 def draw_binder_FFS_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_list = ["MM","CC"]):
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10,6),dpi=500)
+    # fig = plt.figure()
     ax = fig.add_subplot(111)
     marker = ["o","s","o","s","o"]
 
@@ -297,7 +312,7 @@ def draw_binder_FFS_multi(path_list,Lsize,Bins,Step_Size, Tc=2.269, nu=1 , plot_
             plt.plot(TTa*(Lsize[i]**(1/nu)),Binder,linestyle="",marker=marker[0],markersize=5,mfc='none',label="L"+str(Lsize[i]))
         # plt.axvline(x=2/np.log(1+np.sqrt(2)),c='grey',lw=1,dashes=[2,2])
 
-        ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
+    # ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
     plt.ylabel('Binder ratio g')
     plt.xlabel('(T-Tc)*(Lsize^(1/nu))')
     plt.show()
@@ -413,8 +428,8 @@ def draw_correlation(path_list,Lsize,Bins,Step_Size,err_data = [],idx_except=[],
     # plt.xlabel('(T-Tc)*(Lsize^(1/nu))')
     plt.show()
 
-def draw_correlation_advanced_1(path_list,Lsize,Bins,Step_Size,err_data = [],idx_except=[],plot_list = ['long','short','err','abs','except0','half','log_fit']):
-    fig = plt.figure()
+def draw_correlation_advanced_1(path_list,Lsize,Bins,Step_Size,err_data = [],idx_except=[],plot_list = ['long','short','err','abs','except0','half','log_fit'],temp = 0):
+    fig = plt.figure(figsize=(10,6),dpi=500)
     ax = fig.add_subplot(111)
     marker = ["o","s","o","s","o","s","o","s"]*2
 
@@ -454,12 +469,27 @@ def draw_correlation_advanced_1(path_list,Lsize,Bins,Step_Size,err_data = [],idx
             ff = lambda X,a,b:X**(-a)+b
             print(np.array(Lrange),cur_data)
             popt, popv = curve_fit(ff,np.array(Lrange),cur_data[0])
-
+        # print(cur_data[0],longerr)
         if 'long' in plot_list:
             if 'dim_scale' in plot_list:
-                plt.errorbar(Lrange/Lsize[i],(cur_data[0]*Lsize[i]**(0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i])+'l')
+                if 'log_s' in plot_list:
+                    plt.errorbar(Lrange/Lsize[i],(cur_data[0]*Lsize[i]**(0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i])+'l')
+                    # plt.plot(Lrange/Lsize[i],(cur_data[0]*Lsize[i]**(0.25)),linestyle=" ",marker=marker[i],mfc='none',label="L"+str(Lsize[i])+'l')
+                    # plt.ylim((10**-3,1.5))
+                    plt.yscale('log')
+                    plt.ylabel('$C(r)L^{1/4}$')
+                    plt.xlabel('r/L')
+                else:
+                    plt.errorbar(Lrange/Lsize[i],(cur_data[0]*Lsize[i]**(0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i])+'l')
+                    plt.ylabel('$C(r)L^{1/4}$')
+                    plt.xlabel('r/L')
             elif 'cft' in plot_list:
-                plt.errorbar(Lrange/Lsize[i],(cur_data[0]*Lsize[i]**(0.25))/(np.sin(3.141592*np.array(Lrange/Lsize[i]))**(-0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i])+'l')
+                plt.errorbar(Lrange/Lsize[i],cur_data[0]*(Lsize[i]*(np.sin(np.pi*np.array(Lrange/Lsize[i]))))**(0.25),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=4,mfc='none',label="L"+str(Lsize[i])+'l')
+                # plt.errorbar(Lrange/Lsize[i],(cur_data[0])/(np.sin(3.141592*np.array(Lrange/Lsize[i]))**(-0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=4,mfc='none',label="L"+str(Lsize[i])+'l')
+                plt.ylabel('$C(r)[L\sin(\pi r/L)]^{1/4}$')
+                plt.xlabel('r/L')
+            elif 'exponent' in plot_list:
+                plt.errorbar(Lrange,cur_data[0]/(np.array(Lrange))**(-0.25),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=4,mfc='none',label="L"+str(Lsize[i])+'l')
             elif 'err' in plot_list:
                 print(len(cur_data[0]),cur_L,len(longerr))
                 plt.plot(Lrange/Lsize[i],cur_data[0],linestyle="-",marker=marker[i],markersize=5,mfc='none',label="L"+str(Lsize[i])+'l')
@@ -475,9 +505,9 @@ def draw_correlation_advanced_1(path_list,Lsize,Bins,Step_Size,err_data = [],idx
 
         if 'short' in plot_list:
             if 'dim_scale' in plot_list:
-                plt.errorbar(Lrange/Lsize[i],(cur_data[0]*Lsize[i]**(0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i])+'s')
+                plt.errorbar(Lrange/Lsize[i],(cur_data[1]*Lsize[i]**(0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i])+'s')
             elif 'cft' in plot_list:
-                plt.errorbar(Lrange/Lsize[i],(cur_data[0]*Lsize[i]**(0.25))/(np.sin(3.141592*np.array(Lrange/Lsize[i]))**(-0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i])+'s')
+                plt.errorbar(Lrange/Lsize[i],(cur_data[1]*Lsize[i]**(0.25))/(np.sin(3.141592*np.array(Lrange/Lsize[i]))**(-0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i])+'s')
             elif 'err' in plot_list:
                 print(len(cur_data[0]),cur_L,len(longerr))
                 plt.errorbar(Lrange/Lsize[i],(cur_data[1]*Lsize[i]**(0.25)),longerr,linestyle=" ",marker=marker[i],markersize=5,capsize=7,mfc='none',label="L"+str(Lsize[i])+'s')
@@ -489,7 +519,7 @@ def draw_correlation_advanced_1(path_list,Lsize,Bins,Step_Size,err_data = [],idx
                 plt.plot(Lrange,cur_data[1],linestyle="-",marker=marker[i],markersize=5,mfc='none',label="L"+str(Lsize[i])+'s')
 
     plt.legend()
-    ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
+    # ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
     # plt.ylabel('Binder ratio g')
     # plt.xlabel('(T-Tc)*(Lsize^(1/nu))')
     plt.show()
@@ -749,14 +779,40 @@ def cor_build(data,Lsize,option = []):
     long_res = []
     short_res = []
     for rr in range(data.shape[0]):
-        upti = restore_upper_triangle(data.iloc[rr][2:],Lsize)
-        # print(upti)
-        if(rr%2 == 0):
-            long_res.append(upper_triangle_statics(upti,Lsize,option))
+        if 'full' in option:
+            restore = restore_1Dvec_to_matrix
         else:
-            short_res.append(upper_triangle_statics(upti,Lsize,option))
+            restore = restore_upper_triangle
+        xLsize = Lsize
+        if '2Ly' in option:
+            yLsize = 2*Lsize
+        if '2Lx' in option:
+            yLsize = Lsize//2
+        if(rr%2 == 0):
+            upti = restore(data.iloc[rr][2:],yLsize)
+            long_res.append(upper_triangle_statics(upti,yLsize,option))
+        else:
+            upti = restore(data.iloc[rr][2:],xLsize)
+            short_res.append(upper_triangle_statics(upti,xLsize,option))
     # return 1, 2
     return merge_upti_data(long_res,option), merge_upti_data(short_res,option)
+
+
+# def cor_build(data,Lsize,option = []):
+#     long_res = []
+#     short_res = []
+#     for rr in range(data.shape[0]):
+#         if 'full' in option:
+#             upti = restore_1Dvec_to_matrix(data.iloc[rr][2:],Lsize)
+#         else:
+#             upti = restore_upper_triangle(data.iloc[rr][2:],Lsize)
+#         # print(upti)
+#         if(rr%2 == 0):
+#             long_res.append(upper_triangle_statics(upti,Lsize,option))
+#         else:
+#             short_res.append(upper_triangle_statics(upti,Lsize,option))
+#     # return 1, 2
+#     return merge_upti_data(long_res,option), merge_upti_data(short_res,option)
 
 
 def merge_upti_data(ls,option=[]):
@@ -772,6 +828,15 @@ def merge_upti_data(ls,option=[]):
                 res[i] += data[i]
         return res/len(ls)
 
+
+def restore_1Dvec_to_matrix(data, Lsize):
+    res = np.zeros([Lsize,Lsize])
+    cnt = 0
+    for i in range(Lsize):
+        for j in range(Lsize):
+            res[i][j] = data[cnt]
+            cnt += 1
+    return res
 
 def restore_upper_triangle(data, Lsize):
     res = np.zeros([Lsize,Lsize])
@@ -791,20 +856,41 @@ def restore_upper_triangle(data, Lsize):
     # print(tt)
     # print(tt2/6)
 
+# def upper_triangle_statics(mat,Lsize,option = []):
+#     if 'err' in option:
+#         res = np.zeros([Lsize])
+#         for i in range(Lsize):
+#             for j in range(Lsize):
+#                 res[i] += (mat[(i+j)%Lsize][j])**2
+#         return (res/Lsize)**(0.5)
+#     else:
+#         res = np.zeros([Lsize])
+#         for i in range(Lsize):
+#             for j in range(Lsize):
+#                 res[i] += mat[(i+j)%Lsize][j]
+#         return res/Lsize
+
 def upper_triangle_statics(mat,Lsize,option = []):
     if 'err' in option:
         res = np.zeros([Lsize])
         for i in range(Lsize):
-            for j in range(Lsize):
-                res[i] += (mat[(i+j)%Lsize][j])**2
-        return (res/Lsize)**(0.5)
+            # for j in range(Lsize):
+                # res[i] += (mat[(i+j)%Lsize][j])**2
+            res[i] += np.std(np.diag(mat,k=i))
+        return res
     else:
         res = np.zeros([Lsize])
         for i in range(Lsize):
-            for j in range(Lsize):
-                res[i] += mat[(i+j)%Lsize][j]
-        return res/Lsize
+            # for j in range(Lsize):
+                # res[i] += mat[(i+j)%Lsize][j]
+            res[i] += np.mean(np.diag(mat,k=i))
+        return res
 
+# def upper_triangle_statics(mat,Lsize,option = []):
+#     res = np.zeros([Lsize])
+#     for i in range(Lsize):
+#         res[i] += mat[i][0]
+#     return res
 
 def refine_parsing_dict(parsing_dict):
     for key in parsing_dict.keys():

@@ -89,7 +89,7 @@ class AA_Metropolis{
         // N size of correation result vector: cor[n] is correlation btw 0th site spin and nth spin;
         float* cor_long;
         float* cor_short;
-        float *AA, *BB;
+        float *cor_short_res, *cor_long_res;
 
 
         vector<INT8> sign;
@@ -127,9 +127,13 @@ class AA_Metropolis{
         // void Initialzie(int idx);
         void Measure();
         void Measure_fast();
-        void Calculate(INT1 _n = 0,bool Random = true);
+        void Calculate(INT1 _n = 0,bool Random = false);
         void IterateUntilEquilibrium(INT1 equil_time,bool random = true);
         void CalculateCorrelation();
+        void CalculateCorrelation_update();
+        void CalculateCorrelation_update2();
+        void CalculateCorrelation_reset();
+
         // void CalculateCorrelationStaggered();
 };
 
@@ -148,8 +152,8 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
     this-> linked_dn = vector<INT8>(N);
     this-> prob      = vector<FLOAT2>(5);
 
-    AA = new float[Lx];
-    BB = new float[Ly];
+    cor_short_res = new float[Lx];
+    cor_long_res = new float[Ly];
 
     // Checkboard style
     // if(Lx%2 == 1)
@@ -176,7 +180,9 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
         }
         // cout << i << ' ' << k << '\n';
         linked_cb[i] = k;
-        // cout << i << linked_cb[i] << '\n';
+        // cout << linked_cb[i] << ' ';
+        // if(i%Lx == Lx-1)
+        //     cout << '\n';
     }
 
     for(int i = 0; i < N; i++){
@@ -190,6 +196,27 @@ AA_Metropolis::AA_Metropolis(INT1 Lx, INT1 Ly, INT1 bin, FLOAT1 B, FLOAT1 Jx, FL
         if((nn = i + YNN) >= N) nn -= N;
         linked_dn[i] = nn;
     }
+
+    // for(int i = 0; i < N; i++){
+    //     cout << linked_ln[i] << ' ';
+    //     if(i%Lx == Lx-1)
+    //         cout << '\n';
+    // }
+    //     for(int i = 0; i < N; i++){
+    //     cout << linked_rn[i] << ' ';
+    //             if(i%Lx == Lx-1)
+    //         cout << '\n';
+    // }
+    // for(int i = 0; i < N; i++){
+    //     cout << linked_un[i] << ' ';
+    //             if(i%Lx == Lx-1)
+    //         cout << '\n';
+    // }
+    // for(int i = 0; i < N; i++){
+    //     cout << linked_dn[i] << ' ';
+    //             if(i%Lx == Lx-1)
+    //         cout << '\n';
+    // }
 
     this-> MV = vector<FLOAT1>(Bin);
     this-> CV = vector<FLOAT1>(Bin);
@@ -305,24 +332,75 @@ void AA_Metropolis::IterateUntilEquilibrium(INT1 equil_time,bool random){
         Calculate(0,true);
 }
 
-void AA_Metropolis::CalculateCorrelation(){
+void AA_Metropolis::CalculateCorrelation_reset(){
     for(int i = 0; i < N; i++)
         cor_short[i] = 0;
     for(int i = 0; i < N; i++)
         cor_long[i] = 0;
+}
 
-    for(int i = 0; i < Ly; i++){
+void AA_Metropolis::CalculateCorrelation_update(){
+    for(int i = 0; i < 1; i++){
         for(int j = 0; j < Lx; j++){
-            AA[j] = sc[i*Lx + j];
+            cor_short_res[j] = sc[i*Lx + j];
         }
-        cblas_sspr(CblasRowMajor,CblasUpper,Lx,1/(FLOAT2)Lx,AA,1,cor_short);
+        cblas_sspr(CblasRowMajor,CblasUpper,Lx,1,cor_short_res,1,cor_short);
+        // Hard form?
     }
-    for(int i = 0; i < Lx; i++){
+    for(int i = 0; i < 1; i++){
         for(int j = 0; j < Ly; j++){
-            BB[j] = sc[j*Lx + i];
+            cor_long_res[j] = sc[j*Lx + i];
         }
-        cblas_sspr(CblasRowMajor,CblasUpper,Ly,1/(FLOAT2)Ly,BB,1,cor_long);
+        cblas_sspr(CblasRowMajor,CblasUpper,Ly,1,cor_long_res,1,cor_long);
     }
+}
+
+void AA_Metropolis::CalculateCorrelation_update2(){
+    for(int i = 0; i < 1; i++){
+        for(int j = 0; j < Lx; j++){
+            cor_short_res[j] = sc[i*Lx + j];
+        }
+        for(int j = 0; j < Lx; j++){
+            for(int k = 0; k < Lx; k++){
+                cor_short[j*Lx + k] += cor_short_res[j]*cor_short_res[k];
+            }
+        }
+    }
+    for(int i = 0; i < 1; i++){
+        for(int j = 0; j < Ly; j++){
+            cor_long_res[j] = sc[j*Lx + i];
+        }
+        for(int j = 0; j < Lx; j++){
+            for(int k = 0; k < Lx; k++){
+                cor_long[j*Lx + k] += cor_long_res[j]*cor_long_res[k];
+            }
+        }
+    }
+}
+
+void AA_Metropolis::CalculateCorrelation(){
+    CalculateCorrelation_reset();
+    CalculateCorrelation_update();
+    // memset(cor_short,0,sizeof(cor_short));
+    // memset(cor_long,0,sizeof(cor_long));
+
+    // for(int i = 0; i < N; i++)
+    //     cor_short[i] = 0;
+    // for(int i = 0; i < N; i++)
+    //     cor_long[i] = 0;
+
+    // for(int i = 0; i < 1; i++){
+    //     for(int j = 0; j < Lx; j++){
+    //         cor_short_res[j] = sc[i*Lx + j];
+    //     }
+    //     cblas_sspr(CblasRowMajor,CblasUpper,Lx,1,cor_short_res,1,cor_short);
+    // }
+    // for(int i = 0; i < 1; i++){
+    //     for(int j = 0; j < Ly; j++){
+    //         cor_long_res[j] = sc[j*Lx + i];
+    //     }
+    //     cblas_sspr(CblasRowMajor,CblasUpper,Ly,1,cor_long_res,1,cor_long);
+    // }
 }
 
 // void AA_Metropolis::CalculateCorrelationStaggered(){

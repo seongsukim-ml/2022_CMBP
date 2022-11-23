@@ -1,13 +1,13 @@
 #include "AA_Metropolis_program_header_short.hpp"
 
 // arguments list that helps to pass the args to model
-// vector<string> result_to_file = vector<string>();
-// vector<string> result_to_file_cor = vector<string>();
-// vector<string> result_to_file_cor_err = vector<string>();
+vector<string> result_to_file = vector<string>();
+vector<string> result_to_file_cor = vector<string>();
+vector<string> result_to_file_cor_err = vector<string>();
 
-vector<vector<FLOAT2>> result_to_file         = vector<vector<FLOAT2>>();
-vector<vector<FLOAT2>> result_to_file_cor     = vector<vector<FLOAT2>>();
-vector<vector<FLOAT2>> result_to_file_cor_err = vector<vector<FLOAT2>>();
+// vector<vector<FLOAT2>> result_to_file         = vector<vector<FLOAT2>>();
+// vector<vector<FLOAT2>> result_to_file_cor     = vector<vector<FLOAT2>>();
+// vector<vector<FLOAT2>> result_to_file_cor_err = vector<vector<FLOAT2>>();
 
 
 int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv[1]--> Input parameter
@@ -200,72 +200,77 @@ int main(int argn, char *argv[]){ // Input argument: argv[0]--> file name / argv
         cout << left << setw(14) << model.Fliped_Step << "  " << left << setw(10) << model.Total_Step << endl;
 
         // Standard result save
-        // string result = to_string(cBin) + "," + to_string(model.TV[cBin]) + "," + to_string(model.MV[cBin]) + "," + to_string(model.CV[cBin]) + ",";
-        // result = result + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
-        // result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + "," + to_string(model.BV[cBin]) + ",";
-        // result = result + to_string(MMerr) + "," + to_string(CCerr) + "," + to_string(BBerr) + "\n";
+        string result = to_string(cBin) + "," + to_string(model.TV[cBin]) + "," + to_string(model.MV[cBin]) + "," + to_string(model.CV[cBin]) + ",";
+        result = result + to_string(model.res[0]) + "," + to_string(model.res[1]) + "," + to_string(model.res[2]) + ",";
+        result = result + to_string(model.res[3]) + "," + to_string(model.res[4]) + "," + to_string(model.BV[cBin]) + ",";
+        result = result + to_string(MMerr) + "," + to_string(CCerr) + "," + to_string(BBerr) + "\n";
 
-        vector<FLOAT2> result = {
-            FLOAT1(cBin),model.TV[cBin],model.MV[cBin],model.CV[cBin],
-            model.res[0],model.res[1],model.res[2],model.res[3],model.res[4],
-            model.BV[cBin], MMerr, CCerr, BBerr, MM2err, MM4err
-            };
+        // vector<FLOAT2> result = {
+        //     FLOAT1(cBin),model.TV[cBin],model.MV[cBin],model.CV[cBin],
+        //     model.res[0],model.res[1],model.res[2],model.res[3],model.res[4],
+        //     model.BV[cBin], MMerr, CCerr, BBerr, MM2err, MM4err
+        //     };
 
 
-        result_to_file.push_back(result);
+        // result_to_file.push_back(result);
 
         // correlation result save
-        // string result2 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
-        // for(int j = 0; j < kN; j++){
-        //     result2 = result2 + to_string(cor_long_avg[j]) + ",";
-        // }
-        // result2 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
-        // for(int j = 0; j < kN; j++){
-        //     result2 = result2 + to_string(cor_short_avg[j]) + ",";
-        // }
-        // result2.pop_back();
-        // result_to_file_cor.push_back(result2 + "\n");
-
-
-        vector<FLOAT2> result2 = {FLOAT1(cBin),model.TV[cBin]};
+        string result2 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
         for(int j = 0; j < kN; j++){
-            result2.push_back(cor_long_avg[j]);
+            result2 = result2 + to_string(cor_long_avg[j]) + ",";
         }
-        result_to_file_cor.push_back(result2);
+        result2.pop_back();
+        result_to_file_cor.push_back(result2 + "\n");
+        // cout << result2;
 
-        result2 = {FLOAT1(cBin),model.TV[cBin]};
+        result2 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
         for(int j = 0; j < kN; j++){
-            result2.push_back(cor_short_avg[j]);
+            result2 = result2 + to_string(cor_short_avg[j]) + ",";
         }
-        result_to_file_cor.push_back(result2);
+        result2.pop_back();
+        result_to_file_cor.push_back(result2 + "\n");
+        // cout << result2;
+
+
+        // vector<FLOAT2> result2 = {FLOAT1(cBin),model.TV[cBin]};
+        // for(int j = 0; j < kN; j++){
+        //     result2.push_back(cor_long_avg[j]);
+        // }
+        // result_to_file_cor.push_back(result2);
+
+        // result2 = {FLOAT1(cBin),model.TV[cBin]};
+        // for(int j = 0; j < kN; j++){
+        //     result2.push_back(cor_short_avg[j]);
+        // }
+        // result_to_file_cor.push_back(result2);
 
 
         // correlation err result save
-        // string result3 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
-        // for(int j = 0; j < kN; j++){
-        //     result3 = result3 + to_string(cor_long_err[j]) + ",";
-        // }
-        // result3.pop_back();
-        // result_to_file_cor_err.push_back(result3 + "\n");
-
-        // result3 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
-        // for(int j = 0; j < kN; j++){
-        //     result3 = result3 + to_string(cor_short_err[j]) + ",";
-        // }
-        // result3.pop_back();
-        // result_to_file_cor_err.push_back(result3 + "\n");
-
-        vector<FLOAT2> result3 = {FLOAT1(cBin),model.TV[cBin]};
+        string result3 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
         for(int j = 0; j < kN; j++){
-            result3.push_back(cor_long_err[j]);
+            result3 = result3 + to_string(cor_long_err[j]) + ",";
         }
-        result_to_file_cor_err.push_back(result3);
+        result3.pop_back();
+        result_to_file_cor_err.push_back(result3 + "\n");
 
-        result3 = {FLOAT1(cBin),model.TV[cBin]};
+        result3 = to_string(cBin) + "," + to_string(model.TV[cBin]) + ",";
         for(int j = 0; j < kN; j++){
-            result3.push_back(cor_short_err[j]);
+            result3 = result3 + to_string(cor_short_err[j]) + ",";
         }
-        result_to_file_cor_err.push_back(result3);
+        result3.pop_back();
+        result_to_file_cor_err.push_back(result3 + "\n");
+
+        // vector<FLOAT2> result3 = {FLOAT1(cBin),model.TV[cBin]};
+        // for(int j = 0; j < kN; j++){
+        //     result3.push_back(cor_long_err[j]);
+        // }
+        // result_to_file_cor_err.push_back(result3);
+
+        // result3 = {FLOAT1(cBin),model.TV[cBin]};
+        // for(int j = 0; j < kN; j++){
+        //     result3.push_back(cor_short_err[j]);
+        // }
+        // result_to_file_cor_err.push_back(result3);
     }
 
     kFilename += "_corJackknife";

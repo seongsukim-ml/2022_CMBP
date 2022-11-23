@@ -2,7 +2,7 @@
 #include "../../../headers/Writer.hpp"
 #include <iostream>
 #include <iomanip>
-#define base_L128
+#define base_L24F
 
 #ifdef base_L128
     /***************** (Test) Parameters 1 *****************/
@@ -36,7 +36,7 @@
     int kLy         = 24;
 
     int kN          = kLx*kLy;
-    int kBin        = 11;          /*Parameter: Change binning of temperature*/
+    int kBin        = 2;          /*Parameter: Change binning of temperature*/
 
     double kB       = 0;
     double kJx      = 1;
@@ -52,7 +52,59 @@
 
     int equil_time_base = 1e3;
     int equil_time = equil_time_base;
-    int mcs = 1e5;
+    int mcs = 1e6;
+    /***************** (Test) Parameters 1 *****************/
+#endif
+
+#ifdef base_L24F
+    /***************** (Test) Parameters 1 *****************/
+    int kLx         = 24;          /*Parameter: lattice size*/
+    int kLy         = 24;
+
+    int kN          = kLx*kLy;
+    int kBin        = 2;          /*Parameter: Change binning of temperature*/
+
+    double kB       = 0;
+    double kJx      = 1;
+    double kJy      = 1;
+
+    double alpha    = 100;
+
+    double Tsrt = 2.26918;
+    double Tfin = 2.26918;
+
+    double isTinf = false;
+    bool Random = false;
+
+    int equil_time_base = 1e3;
+    int equil_time = equil_time_base;
+    int mcs = 1e6;
+    /***************** (Test) Parameters 1 *****************/
+#endif
+
+#ifdef base_L4
+    /***************** (Test) Parameters 1 *****************/
+    int kLx         = 4;          /*Parameter: lattice size*/
+    int kLy         = 4;
+
+    int kN          = kLx*kLy;
+    int kBin        = 2;          /*Parameter: Change binning of temperature*/
+
+    double kB       = 0;
+    double kJx      = 1;
+    double kJy      = 1;
+
+    double alpha    = 100;
+
+    double Tsrt = 2.26918;
+    double Tfin = 2.26918;
+
+    double isTinf = false;
+    bool Random = false;
+
+    int equil_time_base = 1e3;
+    int equil_time = equil_time_base;
+    int mcs = 1e6;
     /***************** (Test) Parameters 1 *****************/
 #endif
 
